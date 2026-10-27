@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT QUANTUM-GRAV | Phase 4 Holographic Fleet Command HUD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js (3D Graphics Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js (Real-time Telemetry Graphs) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+        body {
+            background-color: #020617;
+            color: #38bdf8;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* Cyberpunk Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(56, 189, 248, 0.1);
+        }
+
+        .glass-panel-purple {
+            background: rgba(24, 9, 43, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+
+        .glass-panel-amber {
+            background: rgba(30, 20, 5, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .glass-panel-rose {
+            background: rgba(35, 8, 18, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+        }
+
+        .glass-panel-emerald {
+            background: rgba(6, 30, 20, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Scanline Overlay Effect */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Sci-Fi Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 2px; }
+
+        /* Range Sliders Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #0284c7;
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #38bdf8;
+            box-shadow: 0 0 10px #38bdf8;
+            cursor: pointer;
+        }
+
+        /* HUD Crosshair Corner Accents */
+        .hud-corner-tl { position: absolute; top: 0; left: 0; width: 12px; height: 12px; border-top: 2px solid #38bdf8; border-left: 2px solid #38bdf8; }
+        .hud-corner-tr { position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-top: 2px solid #38bdf8; border-right: 2px solid #38bdf8; }
+        .hud-corner-bl { position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; border-bottom: 2px solid #38bdf8; border-left: 2px solid #38bdf8; }
+        .hud-corner-br { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-bottom: 2px solid #38bdf8; border-right: 2px solid #38bdf8; }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        .pulse-glow { animation: pulseGlow 3s infinite ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen p-2 md:p-4 relative">
+    <!-- CRT Scanline Effect -->
+    <div class="fixed inset-0 scanlines z-50"></div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-[1700px] mx-auto flex flex-col gap-3 relative z-10">
+        
+        <!-- HEADER & TOP CONTROLS BAR -->
+        <header class="glass-panel rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 relative">
+            <div class="hud-corner-tl"></div><div class="hud-corner-tr"></div>
+
+            <!-- Title & Status -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-cyan-950/80 border border-cyan-400/50 flex items-center justify-center text-cyan-400 text-xl shadow-[0_0_15px_rgba(56,189,248,0.4)]">
+                    <i class="fa-solid fa-shuttle-space"></i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-extrabold text-sm md:text-base text-slate-100 tracking-wider">PROJECT QUANTUM-GRAV</h1>
+                    <p class="text-[11px] text-cyan-400/80 font-bold tracking-widest flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        PHASE 4: 3D HOLOGRAPHIC FLEET COMMAND & QUANTUM NAVIGATION
+                    </p>
+                </div>
+            </div>
+
+            <!-- Protocol Mode Selector -->
+            <div class="flex items-center gap-2 bg-slate-950/80 border border-cyan-500/40 px-3 py-1.5 rounded-lg text-xs">
+                <i class="fa-solid fa-network-wired text-cyan-400"></i>
+                <span class="text-slate-400 hidden sm:inline">PROTOCOL:</span>
+                <select id="protocol-select" onchange="updateFleetData()" class="bg-transparent text-cyan-300 font-bold outline-none cursor-pointer">
+                    <option value="standalone" class="bg-slate-900">STANDALONE SWARM DECK</option>
+                    <option value="synchronized" class="bg-slate-900">SYNCHRONIZED MULTI-PHASE MESH</option>
+                    <option value="qenap" class="bg-slate-900">QENAP AUTONOMOUS AI ROUTE</option>
+                </select>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-2">
+                <a href="/" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-orbitron text-xs font-bold transition-all shadow-[0_0_10px_rgba(2,132,199,0.5)] flex items-center gap-1.5">
+                    <i class="fa-solid fa-cubes"></i> PORTAL HUB
+                </a>
+            </div>
+        </header>
+
+        <!-- DASHBOARD GRID LAYOUT -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+            
+            <!-- LEFT CONTROL & QUICK METRICS PANEL (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-3">
+                
+                <!-- Fleet Control Panel -->
+                <div class="glass-panel rounded-xl p-4 relative flex flex-col justify-between">
+                    <div class="hud-corner-tl"></div><div class="hud-corner-tr"></div>
+                    <div class="hud-corner-bl"></div><div class="hud-corner-br"></div>
+
+                    <div class="flex items-center justify-between border-b border-cyan-500/30 pb-2 mb-3">
+                        <span class="font-orbitron font-bold text-xs text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-cyan-400"></i> FLEET VECTOR CONTROLS
+                        </span>
+                        <span id="badge-mode" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/40">ONLINE</span>
+                    </div>
+
+                    <!-- Sliders -->
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-400">Fleet Vessel Count:</span>
+                                <span id="lbl-fleet" class="font-bold text-cyan-300">5 Units</span>
+                            </div>
+                            <input type="range" id="input-fleet" min="3" max="9" value="5" step="1" class="w-full" oninput="updateFleetData()">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-400">Mesh Sync Phase Angle (°):</span>
+                                <span id="lbl-phase" class="font-bold text-purple-400">90.0°</span>
+                            </div>
+                            <input type="range" id="input-phase" min="0" max="360" value="90" step="5" class="w-full" oninput="updateFleetData()">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-400">Master Swarm Warp Index:</span>
+                                <span id="lbl-warp" class="font-bold text-amber-400">Warp 7.20</span>
+                            </div>
+                            <input type="range" id="input-warp" min="1.0" max="15.0" value="7.20" step="0.1" class="w-full" oninput="updateFleetData()">
+                        </div>
+
+                        <div>
+                            <label class="text-slate-400 block mb-1">Dynamic Formation Topology:</label>
+                            <select id="input-formation" onchange="updateFleetData()" class="w-full bg-slate-950 border border-cyan-500/40 rounded-lg p-2 text-cyan-300 font-bold outline-none cursor-pointer">
+                                <option value="SPHERE">SPHERICAL CLUSTER FORMATION</option>
+                                <option value="WEDGE">WEDGE INTERSTELLAR FORMATION</option>
+                                <option value="ECHELON">ECHELON VECTOR FORMATION</option>
+                                <option value="LINE">LINEAR AXIS FORMATION</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Action Toggle Buttons -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                        <button id="btn-antigrav" onclick="toggleAntigrav()" class="p-2.5 rounded-lg font-orbitron font-bold text-[11px] transition-all bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-atom"></i> ANTIGRAV: ACTIVE
+                        </button>
+                        <button id="btn-cool" onclick="toggleCooling()" class="p-2.5 rounded-lg font-orbitron font-bold text-[11px] transition-all bg-emerald-700 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2">
+                            <i class="fa-snowflake"></i> COOLING: NORMAL
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Core Telemetry Metrics Bar -->
+                <div class="glass-panel rounded-xl p-4">
+                    <div class="flex items-center justify-between border-b border-cyan-500/30 pb-2 mb-3">
+                        <span class="font-orbitron font-bold text-xs text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-microchip text-cyan-400"></i> OVERALL MESH INTEGRITY
+                        </span>
+                        <span id="txt-integrity" class="font-bold text-emerald-400 text-sm">99.8%</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">ANTIGRAV PRESSURE</span>
+                            <span id="txt-pressure" class="font-bold text-purple-400 text-sm">9.67 MPa</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">SUBSPACE BANDWIDTH</span>
+                            <span id="txt-bandwidth" class="font-bold text-cyan-400 text-sm">156.5 Gbps</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vessel Telemetry Live Table -->
+                <div class="glass-panel rounded-xl p-3 flex-1">
+                    <div class="flex items-center justify-between border-b border-cyan-500/30 pb-2 mb-2">
+                        <span class="font-orbitron font-bold text-xs text-slate-100 flex items-center gap-1.5">
+                            <i class="fa-solid fa-vessel-capitol text-cyan-400"></i> FLEET VESSEL NODES
+                        </span>
+                        <span class="text-[10px] text-cyan-400/80">LIVE SUBSPACE LINK</span>
+                    </div>
+                    <div id="vessel-list" class="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
+                        <!-- Dynamic Nodes Inserted Here -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT 3D CANVAS & 4 FLOATING HOLOGRAPHIC DISPLAYS (8 cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-3">
+                
+                <!-- 3D HOLOGRAPHIC FLEET COMMAND CANVAS -->
+                <div class="glass-panel rounded-xl p-2 relative h-[380px] md:h-[420px] overflow-hidden">
+                    <div class="hud-corner-tl z-20"></div><div class="hud-corner-tr z-20"></div>
+                    <div class="hud-corner-bl z-20"></div><div class="hud-corner-br z-20"></div>
+
+                    <!-- HUD Overlay Indicators inside Canvas -->
+                    <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
+                        <div class="px-2.5 py-1 rounded bg-slate-950/80 border border-cyan-500/50 text-[11px] font-bold text-cyan-300 font-orbitron flex items-center gap-2 shadow-[0_0_10px_rgba(56,189,248,0.3)]">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                            3D HOLOGRAPHIC FLEET TOPOLOGY & RADAR SWEEP
+                        </div>
+                    </div>
+
+                    <div class="absolute top-4 right-4 z-20 text-[10px] text-slate-400 font-bold bg-slate-950/80 border border-slate-800 px-2.5 py-1 rounded flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-spin text-cyan-400"></i> ROTATE: MOUSE DRAG
+                    </div>
+
+                    <!-- Three.js Canvas Container -->
+                    <div id="canvas-container" class="w-full h-full rounded-lg bg-slate-950"></div>
+                </div>
+
+                <!-- 4 FLOATING HOLOGRAPHIC HUD DISPLAY MONITORS GRID -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    
+                    <!-- DISPLAY 1: Dark Matter Radar -->
+                    <div class="glass-panel rounded-xl p-3 relative hover:border-emerald-500/60 transition-all">
+                        <div class="hud-corner-tl"></div><div class="hud-corner-tr"></div>
+                        <div class="flex items-center justify-between border-b border-emerald-500/30 pb-1.5 mb-2">
+                            <span class="font-orbitron font-bold text-xs text-emerald-400 flex items-center gap-2">
+                                <i class="fa-solid fa-radar animate-spin"></i> 1. DARK MATTER RADAR SCAN
+                            </span>
+                            <span id="disp1-status" class="text-[10px] font-bold text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40">SECURE</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Target Bearing / Distance:</span>
+                                <span id="disp1-coords" class="font-bold text-slate-200">142° VECTOR / 1.4 LY</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Detected Anomaly Type:</span>
+                                <span id="disp1-type" class="font-bold text-emerald-300">Dark Matter Density Cluster</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-emerald-500/30">
+                                <div id="disp1-bar" class="bg-emerald-500 h-full w-[85%] transition-all duration-500"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DISPLAY 2: Subspace QETB Matrix -->
+                    <div class="glass-panel rounded-xl p-3 relative hover:border-cyan-500/60 transition-all">
+                        <div class="hud-corner-tl"></div><div class="hud-corner-tr"></div>
+                        <div class="flex items-center justify-between border-b border-cyan-500/30 pb-1.5 mb-2">
+                            <span class="font-orbitron font-bold text-xs text-cyan-400 flex items-center gap-2">
+                                <i class="fa-solid fa-wave-square"></i> 2. QETB SUBSPACE MATRIX
+                            </span>
+                            <span id="disp2-status" class="text-[10px] font-bold text-cyan-300 px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40">LOCKED</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-2/3 h-16">
+                                <canvas id="chartQetb"></canvas>
+                            </div>
+                            <div class="w-1/3 text-xs space-y-1">
+                                <div class="text-[10px] text-slate-400">PACKET LOSS</div>
+                                <div id="disp2-loss" class="font-bold text-rose-400 text-sm">0.002%</div>
+                                <div class="text-[10px] text-slate-400">KEY SYNC</div>
+                                <div id="disp2-sync" class="font-bold text-cyan-300 text-[10px]">100% OK</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DISPLAY 3: Warp Bubble Overlap Heatmap -->
+                    <div class="glass-panel-amber rounded-xl p-3 relative hover:border-amber-500/80 transition-all">
+                        <div class="hud-corner-tl"></div><div class="hud-corner-tr"></div>
+                        <div class="flex items-center justify-between border-b border-amber-500/30 pb-1.5 mb-2">
+                            <span class="font-orbitron font-bold text-xs text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-fire-flame-curved"></i> 3. WARP OVERLAP HEATMAP
+                            </span>
+                            <span id="disp3-overlap" class="text-[10px] font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/40">13.32 MW/m³</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Gravitational Tensor Field:</span>
+                                <span id="disp3-tensor" class="font-bold text-amber-300">STABLE ALCUBIERRE BUBBLE</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Spatial Interference Index:</span>
+                                <span id="disp3-index" class="font-bold text-slate-200">0.008 (OPTIMAL)</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-amber-500/30 p-0.5">
+                                <div id="disp3-bar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full w-[65%] rounded-full transition-all duration-500"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DISPLAY 4: Crew Life Support & Radiation Monitor -->
+                    <div class="glass-panel-rose rounded-xl p-3 relative hover:border-rose-500/80 transition-all">
+                        <div class="hud-corner-tl"></div><div class="hud-corner-tr"></div>
+                        <div class="flex items-center justify-between border-b border-rose-500/30 pb-1.5 mb-2">
+                            <span class="font-orbitron font-bold text-xs text-rose-400 flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved"></i> 4. LIFE SUPPORT & RADIATION
+                            </span>
+                            <span id="disp4-life" class="text-[10px] font-bold text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40">LIFE: 100%</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-slate-950/70 p-1.5 rounded border border-rose-500/30">
+                                <span class="text-slate-400 block text-[9px]">RAD ABSORPTION</span>
+                                <span id="disp4-rad" class="font-bold text-rose-400 text-sm">0.24 mSv/h</span>
+                            </div>
+                            <div class="bg-slate-950/70 p-1.5 rounded border border-rose-500/30">
+                                <span class="text-slate-400 block text-[9px]">THERMAL LOAD</span>
+                                <span id="disp4-thermal" class="font-bold text-amber-400 text-sm">726.0 kW</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT ENGINE -->
+    <script>
+        // --- STATE MANAGEMENT ---
+        let state = {
+            fleetSize: 5,
+            phaseAngle: 90.0,
+            warpIndex: 7.20,
+            formation: "SPHERE",
+            antigravity: true,
+            emergencyCooling: false,
+            protocol: "standalone"
+        };
+
+        // --- DOM REFERENCES ---
+        const sliderFleet = document.getElementById('input-fleet');
+        const sliderPhase = document.getElementById('input-phase');
+        const sliderWarp = document.getElementById('input-warp');
+        const selectFormation = document.getElementById('input-formation');
+        const selectProtocol = document.getElementById('protocol-select');
+        const btnAntigrav = document.getElementById('btn-antigrav');
+        const btnCool = document.getElementById('btn-cool');
+
+        // --- BUTTON TOGGLES ---
+        function toggleAntigrav() {
+            state.antigravity = !state.antigravity;
+            if (state.antigravity) {
+                btnAntigrav.className = "p-2.5 rounded-lg font-orbitron font-bold text-[11px] transition-all bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] flex items-center justify-center gap-2";
+                btnAntigrav.innerHTML = '<i class="fa-solid fa-atom"></i> ANTIGRAV: ACTIVE';
+            } else {
+                btnAntigrav.className = "p-2.5 rounded-lg font-orbitron font-bold text-[11px] transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 flex items-center justify-center gap-2";
+                btnAntigrav.innerHTML = '<i class="fa-solid fa-atom"></i> ANTIGRAV: OFF';
+            }
+            updateFleetData();
+        }
+
+        function toggleCooling() {
+            state.emergencyCooling = !state.emergencyCooling;
+            if (state.emergencyCooling) {
+                btnCool.className = "p-2.5 rounded-lg font-orbitron font-bold text-[11px] transition-all bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)] flex items-center justify-center gap-2 animate-pulse";
+                btnCool.innerHTML = '<i class="fa-snowflake"></i> COOLING: EMERGENCY ACTIVE';
+            } else {
+                btnCool.className = "p-2.5 rounded-lg font-orbitron font-bold text-[11px] transition-all bg-emerald-700 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2";
+                btnCool.innerHTML = '<i class="fa-snowflake"></i> COOLING: NORMAL';
+            }
+            updateFleetData();
+        }
+
+        // --- API & DATA FETCH ENGINE ---
+        async function updateFleetData() {
+            state.fleetSize = parseInt(sliderFleet.value);
+            state.phaseAngle = parseFloat(sliderPhase.value);
+            state.warpIndex = parseFloat(sliderWarp.value);
+            state.formation = selectFormation.value;
+            state.protocol = selectProtocol.value;
+
+            document.getElementById('lbl-fleet').innerText = `${state.fleetSize} Units`;
+            document.getElementById('lbl-phase').innerText = `${state.phaseAngle.toFixed(1)}°`;
+            document.getElementById('lbl-warp').innerText = `Warp ${state.warpIndex.toFixed(2)}`;
+
+            let telemetryData = null;
+
+            try {
+                const response = await fetch(`/api/swarm-calculate?fleet_size=${state.fleetSize}&sync_phase=${state.phaseAngle}&warp=${state.warpIndex}&qenap=${state.protocol !== 'standalone'}&formation=${state.formation}&cooling=${state.emergencyCooling}&antigravity=${state.antigravity}`);
+                if (response.ok) {
+                    telemetryData = await response.json();
+                }
+            } catch (err) {
+                // Offline / Standalone Simulation Fallback
+            }
+
+            if (!telemetryData) {
+                telemetryData = generateSimulatedTelemetry();
+            }
+
+            renderTelemetryGUI(telemetryData);
+            update3DFleetTopology(telemetryData.fleet_nodes);
+            updateChartData(telemetryData.metrics.entanglement_fidelity_percent);
+        }
+
+        function generateSimulatedTelemetry() {
+            const nodes = [];
+            for (let i = 1; i <= state.fleetSize; i++) {
+                nodes.push({
+                    vessel_id: `QUANTUM-SWARM-0${i}`,
+                    warp_factor: (state.warpIndex + (i * 0.04)).toFixed(2),
+                    stability: Math.min(100, (99.5 - (i * 0.2))).toFixed(1),
+                    mesh_role: i === 1 ? "COMMAND_NODE" : "RESONANCE_RELAY",
+                    phase_angle: ((state.phaseAngle + (i * (360 / state.fleetSize))) % 360).toFixed(1)
+                });
+            }
+
+            const overlap = (1.85 * state.warpIndex * (state.fleetSize / 5.0)).toFixed(2);
+            const radAbs = (0.24 * (state.warpIndex / 7.0)).toFixed(2);
+            const thermal = state.emergencyCooling ? (420.0 * 0.75).toFixed(1) : (420.0 + state.warpIndex * 42.5).toFixed(1);
+
+            return {
+                metrics: {
+                    overall_mesh_integrity: state.antigravity ? 99.8 : 88.4,
+                    antigravity_pressure_mpa: (1.24 * state.warpIndex * (state.antigravity ? 1.5 : 0.5)).toFixed(2),
+                    entanglement_fidelity_percent: (99.99 - (Math.abs(state.warpIndex - 7.0) * 0.05)).toFixed(2),
+                    packet_loss_percent: Math.max(0.001, (state.warpIndex - 5.0) * 0.005).toFixed(3),
+                    qetb_mesh_bandwidth_gbps: (85.5 + state.fleetSize * 14.2).toFixed(1),
+                    bubble_overlap_density_mw: overlap,
+                    radiation_absorption_msv: radAbs,
+                    thermal_dissipation_kw: thermal,
+                    life_support_index: state.emergencyCooling ? 100 : 99.4,
+                    navigation_status: state.antigravity ? "RADAR_SECURE_SHIELDED" : "WARNING_STORM"
+                },
+                fleet_nodes: nodes
+            };
+        }
+
+        function renderTelemetryGUI(data) {
+            const m = data.metrics;
+            document.getElementById('txt-integrity').innerText = `${m.overall_mesh_integrity}%`;
+            document.getElementById('txt-pressure').innerText = `${m.antigravity_pressure_mpa} MPa`;
+            document.getElementById('txt-bandwidth').innerText = `${m.qetb_mesh_bandwidth_gbps} Gbps`;
+
+            // Display 1: Radar
+            document.getElementById('disp1-status').innerText = m.navigation_status.includes("SHIELDED") ? "SECURE" : "SCANNING";
+            document.getElementById('disp1-coords').innerText = `142° VECTOR / ${state.warpIndex > 8 ? "2.8 LY" : "1.4 LY"}`;
+            document.getElementById('disp1-bar').style.width = state.antigravity ? "95%" : "40%";
+
+            // Display 2: QETB Subspace
+            document.getElementById('disp2-loss').innerText = `${m.packet_loss_percent}%`;
+
+            // Display 3: Warp Overlap Heatmap
+            document.getElementById('disp3-overlap').innerText = `${m.bubble_overlap_density_mw} MW/m³`;
+            document.getElementById('disp3-bar').style.width = `${Math.min(100, (m.bubble_overlap_density_mw / 30) * 100)}%`;
+
+            // Display 4: Radiation & Life Support
+            document.getElementById('disp4-rad').innerText = `${m.radiation_absorption_msv} mSv/h`;
+            document.getElementById('disp4-thermal').innerText = `${m.thermal_dissipation_kw} kW`;
+            document.getElementById('disp4-life').innerText = `LIFE: ${m.life_support_index}%`;
+
+            // Render Vessel Node Table
+            const vesselList = document.getElementById('vessel-list');
+            vesselList.innerHTML = '';
+            data.fleet_nodes.forEach(node => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between bg-slate-950/80 border border-slate-800 p-2 rounded-lg text-xs hover:border-cyan-500/40 transition-all";
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-location-arrow text-cyan-400 text-[10px]"></i>
+                        <span class="font-bold text-slate-200">${node.vessel_id}</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30">${node.mesh_role}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-slate-400">Warp: <strong class="text-amber-300">${node.warp_factor}</strong></span>
+                        <span class="text-slate-400">Sync: <strong class="text-emerald-400">${node.stability}%</strong></span>
+                    </div>
+                `;
+                vesselList.appendChild(item);
+            });
+        }
+
+        // --- CHART.JS SUBSPACE FIDELITY STREAM ---
+        const ctxChart = document.getElementById('chartQetb').getContext('2d');
+        const chartQetb = new Chart(ctxChart, {
+            type: 'line',
+            data: {
+                labels: ['1s', '2s', '3s', '4s', '5s', '6s'],
+                datasets: [{
+                    label: 'Fidelity',
+                    data: [99.9, 99.95, 99.92, 99.98, 99.96, 99.99],
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { display: false },
+                    y: { min: 99.0, max: 100.0, display: false }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function updateChartData(val) {
+            chartQetb.data.labels.shift();
+            chartQetb.data.labels.push('');
+            chartQetb.data.datasets[0].data.shift();
+            chartQetb.data.datasets[0].data.push(val);
+            chartQetb.update('none');
+        }
+
+        // --- THREE.JS 3D HOLOGRAPHIC CANVAS ENGINE ---
+        const canvasContainer = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        canvasContainer.appendChild(renderer.domElement);
+
+        camera.position.set(0, 10, 16);
+        camera.lookAt(0, 0, 0);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0x38bdf8, 2, 50);
+        pointLight.position.set(0, 10, 0);
+        scene.add(pointLight);
+
+        // Grid & Radar Sweep Geometry
+        const gridHelper = new THREE.GridHelper(30, 30, 0x38bdf8, 0x1e293b);
+        scene.add(gridHelper);
+
+        // Rotating Radar Sweep Scanner Beam
+        const radarSweepGeo = new THREE.RingGeometry(0.1, 14, 32, 1, 0, Math.PI / 3);
+        const radarSweepMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.25 });
+        const radarSweep = new THREE.Mesh(radarSweepGeo, radarSweepMat);
+        radarSweep.rotation.x = Math.PI / 2;
+        scene.add(radarSweep);
+
+        // Cosmic Particles Dust
+        const particlesGeo = new THREE.BufferGeometry();
+        const particleCount = 200;
+        const posArray = new Float32Array(particleCount * 3);
+        for(let i=0; i<particleCount*3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 35;
+        }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({ size: 0.08, color: 0x38bdf8, transparent: true, opacity: 0.6 });
+        const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particlesMesh);
+
+        // Dynamic Fleet Fighter Cone Meshes & Warp Energy Spheres
+        let fleetMeshes = [];
+        let energySpheres = [];
+        let meshLineGeo = new THREE.BufferGeometry();
+        let meshLineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, opacity: 0.7, transparent: true });
+        let meshLines = new THREE.LineSegments(meshLineGeo, meshLineMat);
+        scene.add(meshLines);
+
+        function update3DFleetTopology(nodes) {
+            // Re-create meshes if vessel count changed
+            if (fleetMeshes.length !== nodes.length) {
+                fleetMeshes.forEach(m => scene.remove(m));
+                energySpheres.forEach(s => scene.remove(s));
+                fleetMeshes = [];
+                energySpheres = [];
+
+                nodes.forEach((node, idx) => {
+                    // Fighter Cone Mesh
+                    const coneGeo = new THREE.ConeGeometry(0.4, 1.2, 8);
+                    coneGeo.rotateX(Math.PI / 2);
+                    const coneMat = new THREE.MeshStandardMaterial({
+                        color: idx === 0 ? 0xf0f9ff : 0x38bdf8,
+                        emissive: idx === 0 ? 0x0284c7 : 0x0369a1,
+                        roughness: 0.2
+                    });
+                    const coneMesh = new THREE.Mesh(coneGeo, coneMat);
+                    scene.add(coneMesh);
+                    fleetMeshes.push(coneMesh);
+
+                    // Translucent Pulsing Warp Bubble Sphere
+                    const sphereGeo = new THREE.SphereGeometry(1.2, 16, 16);
+                    const sphereMat = new THREE.MeshBasicMaterial({
+                        color: idx === 0 ? 0x7c3aed : 0x0284c7,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.25
+                    });
+                    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+                    scene.add(sphereMesh);
+                    energySpheres.push(sphereMesh);
+                });
+            }
+
+            const positions = [];
+            nodes.forEach((node, i) => {
+                let x = 0, z = 0, y = 0;
+                const form = state.formation;
+
+                if (form === "SPHERE") {
+                    const angle = (i / nodes.length) * Math.PI * 2 + (parseFloat(node.phase_angle) * Math.PI / 180);
+                    x = Math.cos(angle) * 5.5;
+                    z = Math.sin(angle) * 5.5;
+                    y = Math.sin(Date.now() * 0.002 + i) * 0.5;
+                } else if (form === "WEDGE") {
+                    x = (i - Math.floor(nodes.length / 2)) * 2.2;
+                    z = -Math.abs(i - Math.floor(nodes.length / 2)) * 1.8;
+                    y = 0.2;
+                } else if (form === "ECHELON") {
+                    x = (i * 2.0) - 4.5;
+                    z = (i * 1.5) - 3.5;
+                    y = 0.1;
+                } else if (form === "LINE") {
+                    x = (i * 2.5) - 5.0;
+                    z = 0;
+                    y = 0;
+                }
+
+                fleetMeshes[i].position.set(x, y, z);
+                energySpheres[i].position.set(x, y, z);
+
+                // Dynamic Mesh Lines connecting to Command Node (0)
+                if (i > 0) {
+                    positions.push(fleetMeshes[0].position.x, fleetMeshes[0].position.y, fleetMeshes[0].position.z);
+                    positions.push(x, y, z);
+                }
+            });
+
+            meshLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        }
+
+        // Mouse Drag Orbit Controls (Custom Lightweight Implement)
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        canvasContainer.addEventListener('mousedown', () => isDragging = true);
+        canvasContainer.addEventListener('mouseup', () => isDragging = false);
+        canvasContainer.addEventListener('mouseleave', () => isDragging = false);
+        canvasContainer.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+                scene.rotation.y += deltaMove.x * 0.005;
+                scene.rotation.x += deltaMove.y * 0.005;
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        // 3D Render Loop
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            // Rotate Radar Scanner Beam
+            radarSweep.rotation.z -= 0.02;
+
+            // Cosmic Dust Float
+            particlesMesh.rotation.y += 0.0005;
+
+            // Pulse Warp Spheres
+            energySpheres.forEach(s => {
+                s.rotation.y += 0.01;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // Window Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        });
+
+        // --- INIT ON LOAD ---
+        window.onload = () => {
+            animate3D();
+            updateFleetData();
+        };
+    </script>
+</body>
+</html>

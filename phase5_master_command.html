@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT QUANTUM-GRAV - Phase 05 Command Deck</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#020617',
+                            card: '#0B0F19',
+                            border: '#1E293B',
+                            cyan: '#06B6D4',
+                            neon: '#3B82F6',
+                            purple: '#8B5CF6',
+                            danger: '#EF4444',
+                            warning: '#F59E0B',
+                            success: '#10B981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #F3F4F6; overflow-x: hidden; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.4); }
+        .glow-purple { box-shadow: 0 0 25px rgba(139, 92, 246, 0.4); }
+        .glow-btn { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
+        .glass-panel { background: rgba(11, 15, 25, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(30, 41, 59, 0.8); }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06B6D4; }
+    </style>
+</head>
+<body class="bg-cyber-bg text-gray-100 min-h-screen flex flex-col selection:bg-cyber-cyan selection:text-black relative">
+
+    <!-- Top Navigation Header with Clean Project Name & Transit Button -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-cyber-border px-8 py-5 flex flex-wrap justify-between items-center shadow-2xl">
+        <div class="flex items-center space-x-5">
+            <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-cyber-cyan via-cyber-neon to-cyber-purple rounded-xl glow-cyan animate-pulse">
+                <i class="fa-solid fa-atom text-2xl text-black font-extrabold"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-2xl font-black tracking-widest bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent uppercase">
+                        PROJECT QUANTUM-GRAV
+                    </h1>
+                    <span class="text-[10px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyber-cyan border border-cyber-cyan/40 font-semibold">
+                        PHASE 05: MASTER ANTIGRAV COMMAND
+                    </span>
+                </div>
+                <p class="text-xs text-gray-400 font-mono tracking-wider mt-0.5">HIGH-ALTITUDE SPACETIME CURVATURE & SINGULARITY MANIFOLD DECKS</p>
+            </div>
+        </div>
+
+        <!-- Main Action Controls -->
+        <div class="flex items-center space-x-4 mt-4 md:mt-0">
+            <!-- BLACK HOLE SINGULARITY BUTTON -->
+            <button onclick="enterBlackHoleSingularity()" class="relative group overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono font-black text-xs px-6 py-3 rounded-xl tracking-wider transition-all transform hover:scale-105 glow-btn flex items-center space-x-3 border border-cyan-300/40">
+                <i class="fa-solid fa-circle-dot animate-spin text-cyan-200" style="animation-duration: 4s;"></i>
+                <span class="tracking-widest">🕳️ ENTER BLACK HOLE SINGULARITY</span>
+                <span class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+            </button>
+
+            <button onclick="triggerEmergencyFlush()" class="bg-red-950/60 hover:bg-red-900 border border-red-600/60 text-red-400 px-4 py-3 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>PURGE</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Grid -->
+    <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto w-full">
+
+        <!-- LEFT COLUMN: Master Controls & Config (4 Cols) -->
+        <section class="lg:col-span-4 flex flex-col space-y-6">
+            
+            <!-- Mode Switcher Panel -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-sliders text-cyber-cyan"></i>
+                        <span>Test Mode Architecture</span>
+                    </h2>
+                    <span id="mode-indicator" class="text-xs font-mono px-2.5 py-1 rounded bg-cyan-950/60 text-cyber-cyan border border-cyber-cyan/40">GLOBAL SYNC</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btn-global" onclick="setTestMode('global')" class="py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-cyan bg-cyber-cyan/20 text-cyber-cyan shadow-lg glow-cyan flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-link"></i>
+                        <span>Global Synchronized</span>
+                    </button>
+                    <button id="btn-independent" onclick="setTestMode('independent')" class="py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-border bg-cyber-card text-gray-400 hover:text-white hover:border-gray-600 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-network-wired"></i>
+                        <span>Independent Manual</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Master Telemetry Sliders -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl flex-1 flex flex-col justify-between space-y-5">
+                <div>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2 mb-4">
+                        <i class="fa-solid fa-gauge-high text-cyber-purple"></i>
+                        <span>Master Core Parameters</span>
+                    </h2>
+
+                    <!-- Antigravity Voltage Slider -->
+                    <div class="space-y-2 mb-5">
+                        <div class="flex justify-between text-xs font-mono">
+                            <span class="text-gray-400">ANTIGRAVITY VOLTAGE</span>
+                            <span id="val-ag-voltage" class="text-cyber-cyan font-bold text-sm">45.0 kV</span>
+                        </div>
+                        <input type="range" id="slider-ag-voltage" min="0" max="100" step="0.5" value="45" oninput="handleMasterSliderInput()" class="w-full h-2 bg-cyber-border rounded-lg appearance-none cursor-pointer accent-cyber-cyan">
+                        <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+                            <span>0 kV (Nominal)</span>
+                            <span>50 kV (Critical)</span>
+                            <span>100 kV (Singularity)</span>
+                        </div>
+                    </div>
+
+                    <!-- Warp Factor Slider -->
+                    <div class="space-y-2 mb-5">
+                        <div class="flex justify-between text-xs font-mono">
+                            <span class="text-gray-400">WARP FACTOR VELOCITY</span>
+                            <span id="val-warp-factor" class="text-cyber-purple font-bold text-sm">5.2 W</span>
+                        </div>
+                        <input type="range" id="slider-warp-factor" min="1" max="12" step="0.1" value="5.2" oninput="handleMasterSliderInput()" class="w-full h-2 bg-cyber-border rounded-lg appearance-none cursor-pointer accent-cyber-purple">
+                        <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+                            <span>Warp 1 (Sublight)</span>
+                            <span>Warp 6 (Translight)</span>
+                            <span>Warp 12 (Event Horizon)</span>
+                        </div>
+                    </div>
+
+                    <!-- Swarm Fleet Density Slider -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-mono">
+                            <span class="text-gray-400">SWARM FLEET FORMATION</span>
+                            <span id="val-swarm-density" class="text-cyber-success font-bold text-sm">64 Units</span>
+                        </div>
+                        <input type="range" id="slider-swarm-density" min="10" max="250" step="1" value="64" oninput="handleMasterSliderInput()" class="w-full h-2 bg-cyber-border rounded-lg appearance-none cursor-pointer accent-cyber-success">
+                        <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+                            <span>10 Drones</span>
+                            <span>128 Drones</span>
+                            <span>250 Swarm Cluster</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Neural DRL Core Activation Matrix Indicator -->
+                <div class="p-4 rounded-xl bg-cyber-card border border-cyber-border">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-mono font-bold text-gray-300">NEURAL DRL CORE MATRIX</span>
+                        <span id="drl-status-label" class="text-[10px] font-mono text-cyber-success px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-600/40">OPTIMIZED</span>
+                    </div>
+                    <div class="grid grid-cols-6 gap-1.5 h-8 mt-3" id="neural-matrix-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CENTER & RIGHT COLUMN: Advanced Visual Displays (8 Cols) -->
+        <section class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- 1. Gravitational Wave Frequency Spectrum Analyzer (Oscilloscope) -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-wave-square text-cyber-cyan"></i>
+                        <span>Gravitational Wave Spectrum Analyzer</span>
+                    </h3>
+                    <span class="text-[10px] font-mono text-cyber-cyan px-2 py-0.5 bg-cyan-950/60 rounded border border-cyber-cyan/40">LIVE OSCILLOSCOPE</span>
+                </div>
+                <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
+                    <canvas id="oscillatorCanvas" class="w-full h-full"></canvas>
+                    <div class="absolute bottom-2 left-3 text-[10px] font-mono text-cyan-400/80 pointer-events-none">
+                        FREQ: <span id="osc-freq">142.8</span> MHz | AMPLITUDE: <span id="osc-amp">84.2</span>%
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-3">Real-time signal oscillation responding dynamically to Antigravity voltage surges.</p>
+            </div>
+
+            <!-- 2. 3D Rotating Wormhole Torus Canvas with Particle Event Horizon -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-notch text-cyber-purple"></i>
+                        <span>Wormhole Torus Event Horizon</span>
+                    </h3>
+                    <span class="text-[10px] font-mono text-cyber-purple px-2 py-0.5 bg-purple-950/60 rounded border border-purple-600/40">SINGULARITY 3D</span>
+                </div>
+                <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
+                    <canvas id="wormholeCanvas" class="w-full h-full"></canvas>
+                    <div class="absolute bottom-2 left-3 text-[10px] font-mono text-purple-400/80 pointer-events-none">
+                        THROAT STABILITY: <span id="wormhole-stability">99.4</span>%
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-3">Multidimensional quantum torus warping space-time matrix particles.</p>
+            </div>
+
+            <!-- 3. Dynamic Thermal & Radiation Flux Heatmap Status Indicator -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-temperature-arrow-up text-cyber-warning"></i>
+                        <span>Thermal & Radiation Flux Heatmap</span>
+                    </h3>
+                    <span id="thermal-status-badge" class="text-[10px] font-mono text-cyber-success px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-600/40">NOMINAL</span>
+                </div>
+                <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex flex-col items-center justify-center p-3">
+                    <div id="heatmap-grid" class="grid grid-cols-8 gap-2 w-full h-full items-center justify-center">
+                        <!-- Populated by JS grid elements -->
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-3 text-xs font-mono">
+                    <span class="text-gray-400">CORE TEMP: <strong id="val-core-temp" class="text-cyber-cyan">38.4°C</strong></span>
+                    <span class="text-gray-400">RADIATION: <strong id="val-radiation" class="text-cyber-success">0.02 mSv</strong></span>
+                </div>
+            </div>
+
+            <!-- 4. Quantum Entanglement Holographic Radar Ring -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-radar text-cyber-cyan"></i>
+                        <span>Quantum Holographic Radar Ring</span>
+                    </h3>
+                    <span class="text-[10px] font-mono text-cyber-cyan px-2 py-0.5 bg-cyan-950/60 rounded border border-cyber-cyan/40">SUB-SPACE SWARM</span>
+                </div>
+                <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
+                    <canvas id="radarCanvas" class="w-full h-full"></canvas>
+                    <div class="absolute top-2 right-3 text-[9px] font-mono text-gray-400">
+                        TARGETS LOCKED: <span id="radar-targets" class="text-cyber-cyan">18</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-3">Subspace quantum entanglement radar tracking decentralized fleet drones.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer Telemetry Log Bar -->
+    <footer class="glass-panel border-t border-cyber-border px-6 py-3 flex flex-wrap justify-between items-center text-xs font-mono text-gray-400">
+        <div class="flex items-center space-x-4">
+            <span>PROJECT: <strong class="text-cyber-cyan">QUANTUM-GRAV PHASE 5</strong></span>
+            <span>|</span>
+            <span>TELEMETRY (40ms): <strong id="api-status-text" class="text-cyber-success">TRANSMITTING</strong></span>
+            <span>|</span>
+            <span>PACKETS: <strong id="packet-counter" class="text-cyber-cyan">0</strong></span>
+        </div>
+        <div>
+            <span>SYSTEM AUTHORIZATION: <strong class="text-cyber-purple">OMEGA-LEVEL COMMANDER</strong></span>
+        </div>
+    </footer>
+
+    <!-- FULLSCREEN BLACK HOLE SINGULARITY SIMULATION OVERLAY -->
+    <div id="singularity-overlay" class="fixed inset-0 z-50 bg-black hidden transition-opacity duration-1000 flex flex-col justify-between p-6">
+        <!-- Canvas Background Rendering Black Hole Transit -->
+        <canvas id="singularityCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+
+        <!-- Top HUD overlay -->
+        <div class="relative z-10 flex justify-between items-center glass-panel p-4 rounded-xl border border-cyan-500/40">
+            <div class="flex items-center space-x-3">
+                <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+                <span class="font-mono text-xs text-cyan-300 font-bold tracking-widest">SINGULARITY TRANSIT IN PROGRESS // EVENT HORIZON PLUNGE</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="font-mono text-xs text-gray-300">
+                    GRAVITATIONAL DILATION: <span id="hud-dilation" class="text-purple-400 font-bold">14.8x</span>
+                </div>
+                <button onclick="exitSingularityMode()" class="bg-red-950/80 hover:bg-red-900 border border-red-500 text-red-300 font-mono text-xs px-4 py-2 rounded-lg font-bold transition-all shadow-lg">
+                    <i class="fa-solid fa-power-off mr-1"></i> EXIT TRANSIT
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Dynamic Transit Status Text -->
+        <div class="relative z-10 text-center pointer-events-none my-auto">
+            <h2 id="singularity-phase-title" class="text-4xl md:text-6xl font-black font-mono tracking-widest bg-gradient-to-r from-purple-400 via-cyan-300 to-amber-300 bg-clip-text text-transparent animate-pulse drop-shadow-[0_0_35px_rgba(6,182,212,0.8)]">
+                ACCRETION DISK APPROACH
+            </h2>
+            <p id="singularity-phase-sub" class="text-xs md:text-sm font-mono text-cyan-200 tracking-widest mt-2 uppercase">
+                BENDING SPACETIME LIGHT RAYS • CROSSING EVENT HORIZON BOUNDARY
+            </p>
+        </div>
+
+        <!-- Bottom Controls Overlay -->
+        <div class="relative z-10 flex flex-wrap justify-between items-center glass-panel p-4 rounded-xl border border-purple-500/40 gap-4">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleTransitSpeed()" class="bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-400/60 text-cyan-300 font-mono text-xs px-4 py-2 rounded-lg font-bold transition-all">
+                    <i class="fa-solid fa-bolt mr-1"></i> BOOST WARP SPEED
+                </button>
+                <button onclick="changeTunnelDimension()" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-400/60 text-purple-300 font-mono text-xs px-4 py-2 rounded-lg font-bold transition-all">
+                    <i class="fa-solid fa-cube mr-1"></i> SHIFT QUANTUM DIMENSION
+                </button>
+            </div>
+            <div class="font-mono text-xs text-cyan-400">
+                THROAT RADIUS: <span id="singularity-radius" class="text-white font-bold">0.42 AU</span> | FREQUENCY HUM: <span class="text-emerald-400">SYNTHESIZED</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // --- State Management ---
+        const state = {
+            mode: 'global', // 'global' or 'independent'
+            agVoltage: 45.0,
+            warpFactor: 5.2,
+            swarmDensity: 64,
+            packetCount: 0,
+            lastTelemetryTime: 0,
+            inSingularityMode: false
+        };
+
+        // --- Audio Synthesizer via Web Audio API ---
+        let audioCtx = null;
+        let humOsc = null;
+        let pulseOsc = null;
+
+        function startSingularityAudio() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                // Low deep gravitational rumble oscillator
+                humOsc = audioCtx.createOscillator();
+                const humGain = audioCtx.createGain();
+                humOsc.type = 'sawtooth';
+                humOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
+                humGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                humOsc.connect(humGain);
+                humGain.connect(audioCtx.destination);
+                humOsc.start();
+
+                // High speed warp pulse synthesizer
+                pulseOsc = audioCtx.createOscillator();
+                const pulseGain = audioCtx.createGain();
+                pulseOsc.type = 'sine';
+                pulseOsc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                pulseGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                pulseOsc.connect(pulseGain);
+                pulseGain.connect(audioCtx.destination);
+                pulseOsc.start();
+            } catch (e) {
+                console.log("Audio synth optional");
+            }
+        }
+
+        function stopSingularityAudio() {
+            if (humOsc) { humOsc.stop(); humOsc = null; }
+            if (pulseOsc) { pulseOsc.stop(); pulseOsc = null; }
+        }
+
+        // --- Black Hole Singularity Simulation Logic ---
+        const singCanvas = document.getElementById('singularityCanvas');
+        const singCtx = singCanvas.getContext('2d');
+        let singAnimFrame = null;
+        let singPhase = 0; // 0: approach, 1: plunge, 2: tunnel transit
+        let singSpeed = 1.0;
+        let tunnelColorMode = 0;
+        let stars = [];
+
+        function initSingularityStars() {
+            stars = [];
+            for (let i = 0; i < 350; i++) {
+                stars.push({
+                    x: (Math.random() - 0.5) * window.innerWidth * 2,
+                    y: (Math.random() - 0.5) * window.innerHeight * 2,
+                    z: Math.random() * 1000 + 10,
+                    size: Math.random() * 2 + 0.5,
+                    angle: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function enterBlackHoleSingularity() {
+            state.inSingularityMode = true;
+            document.getElementById('singularity-overlay').classList.remove('hidden');
+            initSingularityStars();
+            singPhase = 0;
+            startSingularityAudio();
+            renderSingularityFrame();
+
+            // Transition phases
+            setTimeout(() => {
+                if (state.inSingularityMode) {
+                    singPhase = 1;
+                    document.getElementById('singularity-phase-title').textContent = "EVENT HORIZON PLUNGE";
+                    document.getElementById('singularity-phase-sub').textContent = "PHOTON SPHERE DISTORTION • TIME DILATION DIVERGENCE";
+                }
+            }, 3500);
+
+            setTimeout(() => {
+                if (state.inSingularityMode) {
+                    singPhase = 2;
+                    document.getElementById('singularity-phase-title').textContent = "WORMHOLE MANIFOLD TRANSIT";
+                    document.getElementById('singularity-phase-sub').textContent = "QUANTUM FLUX HYPERSPACE TUNNEL • DISPATCHING TO SUBSPACE";
+                }
+            }, 7000);
+        }
+
+        function exitSingularityMode() {
+            state.inSingularityMode = false;
+            document.getElementById('singularity-overlay').classList.add('hidden');
+            if (singAnimFrame) cancelAnimationFrame(singAnimFrame);
+            stopSingularityAudio();
+        }
+
+        function toggleTransitSpeed() {
+            singSpeed = singSpeed === 1.0 ? 2.5 : (singSpeed === 2.5 ? 4.0 : 1.0);
+            document.getElementById('hud-dilation').textContent = (14.8 * singSpeed).toFixed(1) + 'x';
+        }
+
+        function changeTunnelDimension() {
+            tunnelColorMode = (tunnelColorMode + 1) % 3;
+        }
+
+        function renderSingularityFrame() {
+            if (!state.inSingularityMode) return;
+
+            singCanvas.width = window.innerWidth;
+            singCanvas.height = window.innerHeight;
+
+            const cx = singCanvas.width / 2;
+            const cy = singCanvas.height / 2;
+
+            singCtx.fillStyle = '#020617';
+            singCtx.fillRect(0, 0, singCanvas.width, singCanvas.height);
+
+            const time = performance.now() * 0.002 * singSpeed;
+
+            if (singPhase === 0 || singPhase === 1) {
+                // Draw Gravitational Lensing & Accretion Disk (Outer Glowing Rings)
+                const diskRadius = Math.min(cx, cy) * (singPhase === 0 ? 0.45 : 0.7);
+
+                // Fiery Outer Accretion Gradient
+                const diskGrad = singCtx.createRadialGradient(cx, cy, 30, cx, cy, diskRadius + 120);
+                diskGrad.addColorStop(0, '#000000');
+                diskGrad.addColorStop(0.2, 'rgba(6, 182, 212, 0.9)');
+                diskGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.8)');
+                diskGrad.addColorStop(0.8, 'rgba(245, 158, 11, 0.6)');
+                diskGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                singCtx.fillStyle = diskGrad;
+                singCtx.beginPath();
+                singCtx.arc(cx, cy, diskRadius + 120, 0, Math.PI * 2);
+                singCtx.fill();
+
+                // Swirling Accretion Particle Rings
+                singCtx.lineWidth = 3;
+                for (let r = 40; r < diskRadius + 80; r += 12) {
+                    singCtx.strokeStyle = (r % 24 === 0) ? 'rgba(6, 182, 212, 0.6)' : 'rgba(245, 158, 11, 0.4)';
+                    singCtx.beginPath();
+                    singCtx.ellipse(cx, cy, r, r * 0.35, time * 0.5 + r * 0.01, 0, Math.PI * 2);
+                    singCtx.stroke();
+                }
+
+                // Central Event Horizon Black Void
+                const horizonRadius = 55 + Math.sin(time) * 5;
+                singCtx.fillStyle = '#000000';
+                singCtx.shadowBlur = 50;
+                singCtx.shadowColor = '#06B6D4';
+                singCtx.beginPath();
+                singCtx.arc(cx, cy, horizonRadius, 0, Math.PI * 2);
+                singCtx.fill();
+                singCtx.shadowBlur = 0;
+
+                // Star gravitational distortion pulling into central void
+                stars.forEach(st => {
+                    const dx = st.x;
+                    const dy = st.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Pull towards central black hole
+                    st.x -= (dx / dist) * 2 * singSpeed;
+                    st.y -= (dy / dist) * 2 * singSpeed;
+
+                    if (dist < horizonRadius) {
+                        st.x = (Math.random() - 0.5) * singCanvas.width;
+                        st.y = (Math.random() - 0.5) * singCanvas.height;
+                    }
+
+                    const px = cx + st.x;
+                    const py = cy + st.y;
+
+                    singCtx.fillStyle = '#ffffff';
+                    singCtx.beginPath();
+                    singCtx.arc(px, py, st.size, 0, Math.PI * 2);
+                    singCtx.fill();
+                });
+
+            } else {
+                // PHASE 2: Full Quantum Wormhole Hyperspace Tunnel Plunge
+                const palette = [
+                    ['#06B6D4', '#3B82F6', '#8B5CF6'], // Cyan/Purple
+                    ['#10B981', '#06B6D4', '#F59E0B'], // Emerald/Amber
+                    ['#EF4444', '#8B5CF6', '#3B82F6']  // Crimson/Neon
+                ][tunnelColorMode];
+
+                // Hyperspace Tunnel Concentric Rings & Warp Lines
+                for (let i = 0; i < 35; i++) {
+                    const z = (i * 30 + time * 200) % 900;
+                    const scale = 500 / (z + 1);
+                    const r = 250 * scale;
+
+                    const ringGrad = singCtx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r);
+                    ringGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                    ringGrad.addColorStop(0.5, palette[i % 3]);
+                    ringGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                    singCtx.strokeStyle = palette[i % 3];
+                    singCtx.lineWidth = Math.max(1, scale * 3);
+                    singCtx.beginPath();
+                    singCtx.arc(cx, cy, r, 0, Math.PI * 2);
+                    singCtx.stroke();
+                }
+
+                // Warp Streak Speed Particles
+                stars.forEach(st => {
+                    st.z -= 15 * singSpeed;
+                    if (st.z <= 1) st.z = 1000;
+
+                    const k = 400 / st.z;
+                    const px = cx + st.x * k;
+                    const py = cy + st.y * k;
+
+                    const prevK = 400 / (st.z + 40);
+                    const ppx = cx + st.x * prevK;
+                    const ppy = cy + st.y * prevK;
+
+                    singCtx.strokeStyle = palette[Math.floor(st.angle) % 3];
+                    singCtx.lineWidth = st.size * k * 0.5;
+                    singCtx.beginPath();
+                    singCtx.moveTo(ppx, ppy);
+                    singCtx.lineTo(px, py);
+                    singCtx.stroke();
+                });
+            }
+
+            singAnimFrame = requestAnimationFrame(renderSingularityFrame);
+        }
+
+        // --- Initialize Neural Matrix Grid ---
+        function initNeuralMatrix() {
+            const grid = document.getElementById('neural-matrix-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 18; i++) {
+                const node = document.createElement('div');
+                node.className = 'rounded bg-cyber-cyan/20 border border-cyber-cyan/40 transition-all duration-300';
+                node.id = `neural-node-${i}`;
+                grid.appendChild(node);
+            }
+        }
+
+        // --- Initialize Heatmap Grid ---
+        function initHeatmapGrid() {
+            const grid = document.getElementById('heatmap-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 24; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'w-full h-full rounded bg-cyan-950/40 border border-cyber-cyan/20 transition-all duration-500';
+                cell.id = `heat-cell-${i}`;
+                grid.appendChild(cell);
+            }
+        }
+
+        // --- Set Test Mode ---
+        function setTestMode(mode) {
+            state.mode = mode;
+            const btnGlobal = document.getElementById('btn-global');
+            const btnInd = document.getElementById('btn-independent');
+            const modeInd = document.getElementById('mode-indicator');
+
+            if (mode === 'global') {
+                btnGlobal.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-cyan bg-cyber-cyan/20 text-cyber-cyan shadow-lg glow-cyan flex items-center justify-center space-x-2";
+                btnInd.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-border bg-cyber-card text-gray-400 hover:text-white hover:border-gray-600 flex items-center justify-center space-x-2";
+                modeInd.textContent = "GLOBAL SYNC";
+                modeInd.className = "text-xs font-mono px-2.5 py-1 rounded bg-cyan-950/60 text-cyber-cyan border border-cyber-cyan/40";
+            } else {
+                btnInd.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-purple bg-cyber-purple/20 text-cyber-purple shadow-lg glow-purple flex items-center justify-center space-x-2";
+                btnGlobal.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-border bg-cyber-card text-gray-400 hover:text-white hover:border-gray-600 flex items-center justify-center space-x-2";
+                modeInd.textContent = "INDEPENDENT MANUAL";
+                modeInd.className = "text-xs font-mono px-2.5 py-1 rounded bg-purple-950/60 text-cyber-purple border border-purple-600/40";
+            }
+        }
+
+        // --- Handle Master Sliders ---
+        function handleMasterSliderInput() {
+            state.agVoltage = parseFloat(document.getElementById('slider-ag-voltage').value);
+            state.warpFactor = parseFloat(document.getElementById('slider-warp-factor').value);
+            state.swarmDensity = parseInt(document.getElementById('slider-swarm-density').value);
+
+            document.getElementById('val-ag-voltage').textContent = state.agVoltage.toFixed(1) + ' kV';
+            document.getElementById('val-warp-factor').textContent = state.warpFactor.toFixed(1) + ' W';
+            document.getElementById('val-swarm-density').textContent = state.swarmDensity + ' Units';
+
+            const now = performance.now();
+            if (now - state.lastTelemetryTime > 40) {
+                dispatchFastAPITelemetry();
+                state.lastTelemetryTime = now;
+            }
+        }
+
+        function dispatchFastAPITelemetry() {
+            state.packetCount++;
+            document.getElementById('packet-counter').textContent = state.packetCount;
+        }
+
+        function triggerEmergencyFlush() {
+            document.getElementById('slider-ag-voltage').value = 0;
+            document.getElementById('slider-warp-factor').value = 1.0;
+            document.getElementById('slider-swarm-density').value = 10;
+            handleMasterSliderInput();
+
+            const badge = document.getElementById('thermal-status-badge');
+            badge.textContent = "EMERGENCY PURGE";
+            badge.className = "text-[10px] font-mono text-red-400 px-2 py-0.5 bg-red-950/80 rounded border border-red-600 animate-bounce";
+            setTimeout(() => {
+                badge.textContent = "NOMINAL";
+                badge.className = "text-[10px] font-mono text-cyber-success px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-600/40";
+            }, 3000);
+        }
+
+        // --- Canvas 1: Gravitational Wave Spectrum Analyzer Oscilloscope ---
+        const oscCanvas = document.getElementById('oscillatorCanvas');
+        const oscCtx = oscCanvas.getContext('2d');
+        let oscTime = 0;
+
+        function drawOscillator() {
+            oscCanvas.width = oscCanvas.parentElement.clientWidth;
+            oscCanvas.height = oscCanvas.parentElement.clientHeight;
+
+            oscCtx.clearRect(0, 0, oscCanvas.width, oscCanvas.height);
+
+            oscCtx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+            oscCtx.lineWidth = 1;
+            for (let x = 0; x < oscCanvas.width; x += 30) {
+                oscCtx.beginPath(); oscCtx.moveTo(x, 0); oscCtx.lineTo(x, oscCanvas.height); oscCtx.stroke();
+            }
+            for (let y = 0; y < oscCanvas.height; y += 30) {
+                oscCtx.beginPath(); oscCtx.moveTo(0, y); oscCtx.lineTo(oscCanvas.width, y); oscCtx.stroke();
+            }
+
+            oscCtx.strokeStyle = '#06B6D4';
+            oscCtx.lineWidth = 2.5;
+            oscCtx.shadowBlur = 12;
+            oscCtx.shadowColor = '#06B6D4';
+
+            oscCtx.beginPath();
+            const freqMultiplier = state.warpFactor * 0.4;
+            const amplitude = (state.agVoltage / 100) * (oscCanvas.height * 0.35) + 15;
+            
+            document.getElementById('osc-freq').textContent = (140 + state.warpFactor * 4.2).toFixed(1);
+            document.getElementById('osc-amp').textContent = (state.agVoltage * 0.95).toFixed(1);
+
+            for (let x = 0; x < oscCanvas.width; x++) {
+                const y = oscCanvas.height / 2 + Math.sin(x * 0.03 * freqMultiplier + oscTime) * amplitude * Math.sin(x * 0.005 + oscTime * 0.5);
+                if (x === 0) oscCtx.moveTo(x, y);
+                else oscCtx.lineTo(x, y);
+            }
+            oscCtx.stroke();
+            oscCtx.shadowBlur = 0;
+
+            oscTime += 0.08;
+            requestAnimationFrame(drawOscillator);
+        }
+
+        // --- Canvas 2: 3D Wormhole Torus ---
+        const wormCanvas = document.getElementById('wormholeCanvas');
+        const wormCtx = wormCanvas.getContext('2d');
+        let wormAngle = 0;
+        const particles = [];
+
+        for (let i = 0; i < 70; i++) {
+            particles.push({
+                x: (Math.random() - 0.5) * 200,
+                y: (Math.random() - 0.5) * 200,
+                z: Math.random() * 200 - 100,
+                size: Math.random() * 2 + 1,
+                color: Math.random() > 0.5 ? '#8B5CF6' : '#06B6D4'
+            });
+        }
+
+        function drawWormhole() {
+            wormCanvas.width = wormCanvas.parentElement.clientWidth;
+            wormCanvas.height = wormCanvas.parentElement.clientHeight;
+
+            wormCtx.clearRect(0, 0, wormCanvas.width, wormCanvas.height);
+            const cx = wormCanvas.width / 2;
+            const cy = wormCanvas.height / 2;
+
+            wormCtx.strokeStyle = 'rgba(139, 92, 246, 0.4)';
+            wormCtx.lineWidth = 1.5;
+
+            for (let r = 20; r < 90; r += 15) {
+                wormCtx.beginPath();
+                wormCtx.ellipse(cx, cy, r, r * 0.4, wormAngle, 0, Math.PI * 2);
+                wormCtx.stroke();
+            }
+
+            particles.forEach(p => {
+                const rotX = p.x * Math.cos(wormAngle) - p.z * Math.sin(wormAngle);
+                const rotZ = p.z * Math.cos(wormAngle) + p.x * Math.sin(wormAngle);
+                const scale = 250 / (250 + rotZ);
+                const px = cx + rotX * scale;
+                const py = cy + p.y * scale * 0.5;
+
+                wormCtx.fillStyle = p.color;
+                wormCtx.shadowBlur = 8;
+                wormCtx.shadowColor = p.color;
+                wormCtx.beginPath();
+                wormCtx.arc(px, py, p.size * scale * (state.warpFactor * 0.2), 0, Math.PI * 2);
+                wormCtx.fill();
+                wormCtx.shadowBlur = 0;
+
+                p.z -= state.warpFactor * 0.6;
+                if (p.z < -100) p.z = 100;
+            });
+
+            wormAngle += 0.02 + (state.warpFactor * 0.005);
+            document.getElementById('wormhole-stability').textContent = (99.8 - (state.agVoltage * 0.02)).toFixed(1);
+
+            requestAnimationFrame(drawWormhole);
+        }
+
+        // --- Thermal & Radiation Heatmap ---
+        function updateThermalHeatmap() {
+            const temp = 35 + (state.agVoltage * 0.6) + (state.warpFactor * 1.5);
+            const radiation = 0.01 + (state.agVoltage * 0.003);
+
+            document.getElementById('val-core-temp').textContent = temp.toFixed(1) + '°C';
+            document.getElementById('val-radiation').textContent = radiation.toFixed(3) + ' mSv';
+
+            const badge = document.getElementById('thermal-status-badge');
+            if (temp > 80) {
+                badge.textContent = "CRITICAL OVERDRIVE";
+                badge.className = "text-[10px] font-mono text-red-400 px-2 py-0.5 bg-red-950/80 rounded border border-red-600 animate-pulse";
+            } else if (temp > 60) {
+                badge.textContent = "HIGH FLUX";
+                badge.className = "text-[10px] font-mono text-amber-400 px-2 py-0.5 bg-amber-950/60 rounded border border-amber-600/40";
+            } else {
+                badge.textContent = "NOMINAL";
+                badge.className = "text-[10px] font-mono text-cyber-success px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-600/40";
+            }
+
+            for (let i = 0; i < 24; i++) {
+                const cell = document.getElementById(`heat-cell-${i}`);
+                if (cell) {
+                    const noise = Math.sin(i + performance.now() * 0.002) * 15;
+                    const cellTemp = temp + noise;
+                    if (cellTemp > 75) {
+                        cell.className = "w-full h-full rounded bg-red-600/70 border border-red-400 shadow-lg shadow-red-600/50 transition-all duration-300";
+                    } else if (cellTemp > 55) {
+                        cell.className = "w-full h-full rounded bg-amber-500/60 border border-amber-400 transition-all duration-300";
+                    } else {
+                        cell.className = "w-full h-full rounded bg-cyan-950/50 border border-cyber-cyan/40 transition-all duration-300";
+                    }
+                }
+            }
+
+            for (let i = 0; i < 18; i++) {
+                const node = document.getElementById(`neural-node-${i}`);
+                if (node) {
+                    if (Math.random() > 0.3) {
+                        node.className = "rounded bg-cyber-cyan/60 border border-cyber-cyan glow-cyan transition-all duration-300";
+                    } else {
+                        node.className = "rounded bg-cyber-purple/40 border border-cyber-purple transition-all duration-300";
+                    }
+                }
+            }
+        }
+
+        // --- Canvas 4: Holographic Radar ---
+        const radarCanvas = document.getElementById('radarCanvas');
+        const radarCtx = radarCanvas.getContext('2d');
+        let radarSweepAngle = 0;
+
+        function drawRadar() {
+            radarCanvas.width = radarCanvas.parentElement.clientWidth;
+            radarCanvas.height = radarCanvas.parentElement.clientHeight;
+
+            radarCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+            const cx = radarCanvas.width / 2;
+            const cy = radarCanvas.height / 2;
+            const radius = Math.min(cx, cy) - 15;
+
+            radarCtx.strokeStyle = 'rgba(6, 182, 212, 0.3)';
+            radarCtx.lineWidth = 1;
+            for (let r = radius * 0.33; r <= radius; r += radius * 0.33) {
+                radarCtx.beginPath();
+                radarCtx.arc(cx, cy, r, 0, Math.PI * 2);
+                radarCtx.stroke();
+            }
+
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx - radius, cy); radarCtx.lineTo(cx + radius, cy);
+            radarCtx.moveTo(cx, cy - radius); radarCtx.lineTo(cx, cy + radius);
+            radarCtx.stroke();
+
+            radarCtx.strokeStyle = 'rgba(6, 182, 212, 0.9)';
+            radarCtx.lineWidth = 2;
+            radarCtx.shadowBlur = 10;
+            radarCtx.shadowColor = '#06B6D4';
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx, cy);
+            radarCtx.lineTo(cx + Math.cos(radarSweepAngle) * radius, cy + Math.sin(radarSweepAngle) * radius);
+            radarCtx.stroke();
+            radarCtx.shadowBlur = 0;
+
+            const targetCount = Math.min(state.swarmDensity, 25);
+            document.getElementById('radar-targets').textContent = state.swarmDensity;
+
+            for (let i = 0; i < targetCount; i++) {
+                const angle = (i / targetCount) * Math.PI * 2 + (radarSweepAngle * 0.2);
+                const dist = (i % 3 + 1) * (radius * 0.28);
+                const tx = cx + Math.cos(angle) * dist;
+                const ty = cy + Math.sin(angle) * dist;
+
+                radarCtx.fillStyle = '#10B981';
+                radarCtx.shadowBlur = 6;
+                radarCtx.shadowColor = '#10B981';
+                radarCtx.beginPath();
+                radarCtx.arc(tx, ty, 3, 0, Math.PI * 2);
+                radarCtx.fill();
+                radarCtx.shadowBlur = 0;
+            }
+
+            radarSweepAngle += 0.03;
+            requestAnimationFrame(drawRadar);
+        }
+
+        // --- Initialization on Load ---
+        window.onload = function() {
+            initNeuralMatrix();
+            initHeatmapGrid();
+            drawOscillator();
+            drawWormhole();
+            drawRadar();
+            setInterval(updateThermalHeatmap, 200);
+        };
+    </script>
+
+</body>
+</html>

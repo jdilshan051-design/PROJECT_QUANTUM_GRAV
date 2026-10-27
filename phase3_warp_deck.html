@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT QUANTUM-GRAV | Phase 3 Holographic HUD & Telemetry Deck</title>
+    <!-- Three.js for 3D Graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js for Quantum Flux -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #020610;
+            --panel-bg: rgba(6, 18, 36, 0.75);
+            --panel-border: rgba(2, 132, 199, 0.4);
+            --neon-blue: #38bdf8;
+            --neon-cyan: #06b6d4;
+            --neon-purple: #c084fc;
+            --neon-green: #34d399;
+            --neon-amber: #fbbf24;
+            --neon-red: #f87171;
+            --text-main: #f0f9ff;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--neon-blue);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 10px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.05) 0%, transparent 80%),
+                linear-gradient(rgba(2, 6, 16, 0.9), rgba(2, 6, 16, 0.9));
+        }
+
+        /* Cyberpunk Glass Cockpit HUD Overlays & Scanlines */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 100;
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--panel-border);
+            padding: 6px 12px;
+            margin-bottom: 10px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(8px);
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(2, 132, 199, 0.2);
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+        }
+
+        .nav-btns { display: flex; gap: 8px; align-items: center; }
+
+        .hud-btn {
+            background: rgba(2, 132, 199, 0.2);
+            color: var(--neon-blue);
+            border: 1px solid var(--panel-border);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .hud-btn:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* 3-Column Main Grid Layout */
+        .hud-grid {
+            display: grid;
+            grid-template-columns: 310px 1fr 320px;
+            gap: 10px;
+            height: calc(100vh - 65px);
+        }
+
+        @media (max-width: 1200px) {
+            .hud-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .hud-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(2, 132, 199, 0.1);
+        }
+
+        .card-header {
+            color: var(--text-main);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            border-bottom: 1px dashed rgba(30, 41, 59, 0.8);
+            font-size: 10px;
+        }
+
+        .metric-label { color: var(--text-muted); font-weight: 600; }
+        .metric-val { color: var(--neon-blue); font-weight: 700; font-family: monospace; }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 4px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5px;
+            color: var(--text-muted);
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--neon-blue);
+            background: rgba(1, 4, 8, 0.8);
+            height: 4px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .btn-action {
+            width: 100%;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(185, 28, 28, 0.8), rgba(220, 38, 38, 0.6));
+            color: #fff;
+            border: 1px solid #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+        }
+        .btn-danger:hover { box-shadow: 0 0 15px rgba(239, 68, 68, 0.7); }
+
+        .btn-toggle {
+            background: linear-gradient(135deg, rgba(4, 120, 87, 0.8), rgba(16, 185, 129, 0.6));
+            color: #fff;
+            border: 1px solid var(--neon-green);
+            box-shadow: 0 0 8px rgba(52, 211, 153, 0.3);
+        }
+        .btn-toggle.inactive {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(100, 116, 139, 0.4);
+            color: var(--text-muted);
+            box-shadow: none;
+        }
+
+        .btn-antigravity {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.8), rgba(192, 132, 252, 0.6));
+            color: #fff;
+            border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+        }
+        .btn-antigravity.inactive {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(100, 116, 139, 0.4);
+            color: var(--text-muted);
+            box-shadow: none;
+        }
+
+        /* 3D Viewport styling */
+        #viewport-container {
+            width: 100%;
+            flex: 1;
+            min-height: 280px;
+            background: #01040a;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Displays Canvas Container */
+        .canvas-box {
+            width: 100%;
+            height: 110px;
+            background: rgba(1, 4, 10, 0.9);
+            border: 1px solid rgba(30, 41, 59, 0.8);
+            border-radius: 6px;
+            padding: 4px;
+            position: relative;
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* 12x12 Heatmap Node Matrix Grid */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2px;
+            width: 100%;
+            height: 110px;
+            background: rgba(1, 4, 10, 0.9);
+            border: 1px solid rgba(30, 41, 59, 0.8);
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .node-cell {
+            border-radius: 1px;
+            background: rgba(2, 132, 199, 0.15);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .status-badge {
+            font-size: 8px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: var(--neon-cyan);
+            color: #000;
+            font-weight: 800;
+        }
+
+        .hud-overlay-tag {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 9px;
+            font-family: monospace;
+            color: var(--neon-cyan);
+            background: rgba(2, 6, 16, 0.8);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--panel-border);
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HUD Header Bar -->
+    <div class="header">
+        <div class="title">
+            <i class="fa-solid fa-atom fa-spin" style="color: var(--neon-cyan);"></i> 
+            PROJECT QUANTUM-GRAV | PHASE 3 HOLOGRAPHIC AEROSPACE HUD
+        </div>
+        <div class="nav-btns">
+            <button id="mode-btn" class="hud-btn" style="border-color: var(--neon-green);" onclick="toggleSyncMode()">
+                <i class="fa-solid fa-sliders"></i> MODE: MANUAL
+            </button>
+            <a href="/" class="hud-btn"><i class="fa-solid fa-house"></i> PORTAL HUB</a>
+        </div>
+    </div>
+
+    <!-- 3-Column Main Interface Grid -->
+    <div class="hud-grid">
+        
+        <!-- LEFT PANEL: CONTROLS & COMPREHENSIVE TELEMETRY -->
+        <div class="hud-card">
+            <div class="card-header">
+                <span><i class="fa-solid fa-microchip"></i> METRIC CONTROLS</span>
+                <span id="current-mode-tag" class="status-badge">MANUAL</span>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Warp Factor Index (1.0 - 15.0)</span>
+                    <strong id="val-warp" style="color:var(--text-main)">7.00</strong>
+                </div>
+                <input type="range" id="input-warp" min="1.0" max="15.0" value="7.00" step="0.1">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Reactor Flux Voltage (100 - 2500 MV)</span>
+                    <strong id="val-volt" style="color:var(--text-main)">1200.00</strong>
+                </div>
+                <input type="range" id="input-volt" min="100.0" max="2500.0" value="1200.00" step="10.0">
+            </div>
+
+            <div class="card-header" style="margin-top: 4px;">
+                <span><i class="fa-solid fa-chart-line"></i> LIVE SPACETIME TELEMETRY</span>
+            </div>
+
+            <div class="metric-row">
+                <span class="metric-label">FTL Speed Multiplier:</span>
+                <span class="metric-val" id="m-ftl" style="color:var(--neon-green)">34.30x c</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Spacetime Strain Tensor:</span>
+                <span class="metric-val" id="m-strain">9.8980</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Warp Bubble Stability:</span>
+                <span class="metric-val" id="m-stability" style="color:var(--neon-cyan)">100.00%</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Exotic Energy Density:</span>
+                <span class="metric-val" id="m-energy">1988.70 MJ/m³</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">GR Time Dilation (GR-TDC):</span>
+                <span class="metric-val" id="m-timedilation" style="color:var(--neon-amber)">2.41 Yrs/Yr</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">FFT Resonance Harmonics:</span>
+                <span class="metric-val" id="m-fft" style="color:var(--neon-cyan)">248.90 Hz</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">MHD Plasma Deflection Shield:</span>
+                <span class="metric-val" id="m-mhd" style="color:var(--neon-green)">NOMINAL (85.4%)</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">QETB Telemetry Latency:</span>
+                <span class="metric-val" id="m-qetb" style="color:var(--neon-purple)">0.0002 ms</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Gravimetric Field Status:</span>
+                <span class="metric-val" id="m-status" style="color:var(--neon-green)">STABLE BUBBLE</span>
+            </div>
+
+            <div style="margin-top: auto; display:flex; flex-direction:column; gap: 6px;">
+                <button class="btn-action btn-danger" onclick="injectShockwave()">
+                    <i class="fa-solid fa-bolt"></i> INJECT GRAVITATIONAL SHOCKWAVE
+                </button>
+                <button id="ai-toggle-btn" class="btn-action btn-toggle inactive" onclick="toggleAIStabilizer()">
+                    <i class="fa-solid fa-robot"></i> AI AUTO-STABILIZER: OFF
+                </button>
+                <button id="ag-toggle-btn" class="btn-action btn-antigravity inactive" onclick="toggleAntigravity()">
+                    <i class="fa-solid fa-shield-halved"></i> ANTIGRAVITY REPULSION FIELD: OFF
+                </button>
+            </div>
+        </div>
+
+        <!-- CENTER PANEL: INTERACTIVE 3D HOLOGRAPHIC VIEWPORT -->
+        <div class="hud-card">
+            <div class="card-header">
+                <span><i class="fa-solid fa-cube"></i> 3D HOLOGRAPHIC SPACETIME CURVATURE VIEWPORT</span>
+                <span style="font-size: 8.5px; color: var(--text-muted);">THREE.JS REALTIME RELATIVISTIC SHADER</span>
+            </div>
+
+            <div id="viewport-container">
+                <div class="hud-overlay-tag">SYS::VIEWPORT_ONLINE // DOPPLER_SHIFT_ACTIVE</div>
+            </div>
+
+            <!-- QUANTUM FLUX STREAM CHART -->
+            <div class="card-header" style="margin-top: 2px;">
+                <span><i class="fa-solid fa-wave-square"></i> TRANSFORMER QUANTUM FLUX LIVE STREAM</span>
+            </div>
+            <div class="canvas-box">
+                <canvas id="fluxChart"></canvas>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: ADVANCED DIAGNOSTIC DISPLAYS -->
+        <div class="hud-card">
+            <!-- DISPLAY 1: FFT RESONANCE HARMONICS SPECTRUM -->
+            <div class="card-header">
+                <span><i class="fa-solid fa-chart-simple"></i> DISPLAY 1: FFT HARMONIC SPECTRUM (0-500Hz)</span>
+            </div>
+            <div class="canvas-box">
+                <canvas id="fftCanvas"></canvas>
+            </div>
+
+            <!-- DISPLAY 2: 12x12 STRESS-ENERGY HEATMAP MATRIX -->
+            <div class="card-header" style="margin-top: 4px;">
+                <span><i class="fa-solid fa-table-cells"></i> DISPLAY 2: 12x12 TENSOR HEATMAP MATRIX</span>
+            </div>
+            <div id="heatmapGrid" class="heatmap-grid">
+                <!-- 144 Node Cells populated dynamically -->
+            </div>
+
+            <!-- DISPLAY 3: MINKOWSKI LIGHT-CONE DIAGRAM -->
+            <div class="card-header" style="margin-top: 4px;">
+                <span><i class="fa-solid fa-draw-polygon"></i> DISPLAY 3: MINKOWSKI LIGHT-CONE EXPANSION</span>
+            </div>
+            <div class="canvas-box">
+                <canvas id="minkowskiCanvas"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // State variables
+        const sliderWarp = document.getElementById('input-warp');
+        const sliderVolt = document.getElementById('input-volt');
+        let globalSyncMode = false;
+        let aiStabilizerActive = false;
+        let shockwaveActive = false;
+        let antigravityActive = false;
+
+        sliderWarp.addEventListener('input', () => { if(!globalSyncMode) updateWarpData(); });
+        sliderVolt.addEventListener('input', () => { if(!globalSyncMode) updateWarpData(); });
+
+        function toggleSyncMode() {
+            globalSyncMode = !globalSyncMode;
+            const modeBtn = document.getElementById('mode-btn');
+            const tag = document.getElementById('current-mode-tag');
+            if (globalSyncMode) {
+                modeBtn.style.borderColor = 'var(--neon-blue)';
+                modeBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> MODE: SYNCED';
+                tag.innerText = "SYNCED";
+                sliderWarp.disabled = true; sliderVolt.disabled = true;
+            } else {
+                modeBtn.style.borderColor = 'var(--neon-green)';
+                modeBtn.innerHTML = '<i class="fa-solid fa-sliders"></i> MODE: MANUAL';
+                tag.innerText = "MANUAL";
+                sliderWarp.disabled = false; sliderVolt.disabled = false;
+            }
+        }
+
+        function toggleAIStabilizer() {
+            aiStabilizerActive = !aiStabilizerActive;
+            const btn = document.getElementById('ai-toggle-btn');
+            if (aiStabilizerActive) {
+                btn.classList.remove('inactive');
+                btn.innerHTML = '<i class="fa-solid fa-robot"></i> AI AUTO-STABILIZER: ACTIVE';
+            } else {
+                btn.classList.add('inactive');
+                btn.innerHTML = '<i class="fa-solid fa-robot"></i> AI AUTO-STABILIZER: OFF';
+            }
+            updateWarpData();
+        }
+
+        function toggleAntigravity() {
+            antigravityActive = !antigravityActive;
+            const btn = document.getElementById('ag-toggle-btn');
+            if (antigravityActive) {
+                btn.classList.remove('inactive');
+                btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> ANTIGRAVITY REPULSION FIELD: ACTIVE';
+            } else {
+                btn.classList.add('inactive');
+                btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> ANTIGRAVITY REPULSION FIELD: OFF';
+            }
+            updateWarpData();
+        }
+
+        function injectShockwave() {
+            if(antigravityActive) return;
+            shockwaveActive = true;
+            updateWarpData();
+            setTimeout(() => { shockwaveActive = false; updateWarpData(); }, 2500);
+        }
+
+        // Initialize 12x12 Heatmap Matrix UI Nodes
+        const heatmapContainer = document.getElementById('heatmapGrid');
+        const totalNodes = 144;
+        for (let i = 0; i < totalNodes; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'node-cell';
+            cell.id = `node-${i}`;
+            heatmapContainer.appendChild(cell);
+        }
+
+        function renderHeatmapMatrix(warpVal) {
+            for (let i = 0; i < totalNodes; i++) {
+                const cell = document.getElementById(`node-${i}`);
+                const noise = Math.sin(i * 0.3 + Date.now() * 0.005) * 0.5 + 0.5;
+                const intensity = (warpVal / 15.0) * noise;
+                
+                if (antigravityActive) {
+                    cell.style.backgroundColor = `rgba(192, 132, 252, ${0.3 + intensity * 0.7})`;
+                    cell.style.boxShadow = `0 0 4px rgba(192, 132, 252, ${intensity})`;
+                } else if (shockwaveActive) {
+                    cell.style.backgroundColor = `rgba(248, 113, 113, ${0.4 + intensity * 0.6})`;
+                    cell.style.boxShadow = `0 0 4px rgba(248, 113, 113, ${intensity})`;
+                } else {
+                    cell.style.backgroundColor = `rgba(56, 189, 248, ${0.2 + intensity * 0.8})`;
+                    cell.style.boxShadow = `0 0 3px rgba(56, 189, 248, ${intensity * 0.5})`;
+                }
+            }
+        }
+
+        // API Call to Update Telemetry
+        async function updateWarpData() {
+            let warp = parseFloat(sliderWarp.value);
+            const volt = parseFloat(sliderVolt.value);
+
+            document.getElementById('val-warp').innerText = warp.toFixed(2);
+            document.getElementById('val-volt').innerText = volt.toFixed(1);
+
+            try {
+                const res = await fetch(`/api/warp-calculate?warp=${warp}&voltage=${volt}&ai_active=${aiStabilizerActive}&shockwave=${shockwaveActive}&antigravity=${antigravityActive}`);
+                const data = await res.json();
+
+                document.getElementById('m-ftl').innerText = data.metrics.ftl_speed_multiplier + 'x c';
+                document.getElementById('m-strain').innerText = data.metrics.spacetime_strain;
+                document.getElementById('m-stability').innerText = data.metrics.bubble_stability_percent + '%';
+                document.getElementById('m-energy').innerText = data.metrics.exotic_energy_required + ' MJ/m³';
+                document.getElementById('m-timedilation').innerText = data.metrics.time_dilation + ' Yrs/Yr';
+                document.getElementById('m-fft').innerText = data.metrics.resonance_harmonics + ' Hz';
+                document.getElementById('m-mhd').innerText = data.metrics.mhd_shield;
+                document.getElementById('m-qetb').innerText = data.metrics.qetb_latency + ' ms';
+                document.getElementById('m-status').innerText = data.mode;
+
+                if (antigravityActive) {
+                    document.getElementById('m-status').style.color = "var(--neon-purple)";
+                } else if (shockwaveActive) {
+                    document.getElementById('m-status').style.color = "var(--neon-amber)";
+                } else {
+                    document.getElementById('m-status').style.color = "var(--neon-green)";
+                }
+
+                updateChart(data.metrics.exotic_energy_required);
+            } catch (err) { console.error(err); }
+        }
+
+        // --- Chart.js Quantum Flux Stream ---
+        const ctxChart = document.getElementById('fluxChart').getContext('2d');
+        const fluxChart = new Chart(ctxChart, {
+            type: 'line',
+            data: {
+                labels: ['1s', '2s', '3s', '4s', '5s', '6s', '7s', '8s'],
+                datasets: [{
+                    label: 'Quantum Flux (MJ/m³)',
+                    data: [1500, 1650, 1720, 1800, 1900, 1950, 1988, 1988],
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: true,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(30, 41, 59, 0.5)' } },
+                    y: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(30, 41, 59, 0.5)' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function updateChart(newVal) {
+            fluxChart.data.labels.shift();
+            fluxChart.data.labels.push(new Date().toLocaleTimeString().split(' ')[0]);
+            fluxChart.data.datasets[0].data.shift();
+            fluxChart.data.datasets[0].data.push(newVal);
+            if(antigravityActive) {
+                fluxChart.data.datasets[0].borderColor = '#c084fc';
+                fluxChart.data.datasets[0].backgroundColor = 'rgba(192, 132, 252, 0.15)';
+            } else {
+                fluxChart.data.datasets[0].borderColor = '#38bdf8';
+                fluxChart.data.datasets[0].backgroundColor = 'rgba(56, 189, 248, 0.12)';
+            }
+            fluxChart.update('none');
+        }
+
+        // --- DISPLAY 1: Canvas FFT Harmonics Spectrum Analyzer ---
+        const fftCanvas = document.getElementById('fftCanvas');
+        const fftCtx = fftCanvas.getContext('2d');
+        
+        function drawFFTSpectrum() {
+            fftCanvas.width = fftCanvas.parentElement.clientWidth;
+            fftCanvas.height = fftCanvas.parentElement.clientHeight;
+            
+            const w = fftCanvas.width;
+            const h = fftCanvas.height;
+            const warpVal = parseFloat(sliderWarp.value);
+            
+            fftCtx.clearRect(0, 0, w, h);
+            
+            const bars = 32;
+            const barWidth = w / bars;
+            
+            for (let i = 0; i < bars; i++) {
+                const freqHeight = (Math.sin(i * 0.4 + Date.now() * 0.008) * 0.4 + 0.5) * (h * 0.8) * (warpVal / 10.0);
+                const x = i * barWidth;
+                const y = h - freqHeight;
+
+                const grad = fftCtx.createLinearGradient(0, h, 0, 0);
+                if (antigravityActive) {
+                    grad.addColorStop(0, 'rgba(124, 58, 237, 0.2)');
+                    grad.addColorStop(1, '#c084fc');
+                } else {
+                    grad.addColorStop(0, 'rgba(2, 132, 199, 0.2)');
+                    grad.addColorStop(1, '#06b6d4');
+                }
+
+                fftCtx.fillStyle = grad;
+                fftCtx.fillRect(x + 1, y, barWidth - 2, freqHeight);
+            }
+        }
+
+        // --- DISPLAY 3: Minkowski Light-Cone Diagram Canvas ---
+        const minkowskiCanvas = document.getElementById('minkowskiCanvas');
+        const mCtx = minkowskiCanvas.getContext('2d');
+
+        function drawMinkowskiDiagram() {
+            minkowskiCanvas.width = minkowskiCanvas.parentElement.clientWidth;
+            minkowskiCanvas.height = minkowskiCanvas.parentElement.clientHeight;
+            
+            const w = minkowskiCanvas.width;
+            const h = minkowskiCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const warpVal = parseFloat(sliderWarp.value);
+
+            mCtx.clearRect(0, 0, w, h);
+
+            // Draw Axes
+            mCtx.strokeStyle = 'rgba(100, 116, 139, 0.4)';
+            mCtx.lineWidth = 1;
+            mCtx.beginPath();
+            mCtx.moveTo(cx, 0); mCtx.lineTo(cx, h); // Time Axis
+            mCtx.moveTo(0, cy); mCtx.lineTo(w, cy); // Space Axis
+            mCtx.stroke();
+
+            // Light Cone Angles (FTL Expansion)
+            const coneAngle = Math.min(1.4, (warpVal / 15.0) * (Math.PI / 3));
+
+            mCtx.fillStyle = antigravityActive ? 'rgba(192, 132, 252, 0.15)' : 'rgba(56, 189, 248, 0.15)';
+            mCtx.strokeStyle = antigravityActive ? '#c084fc' : '#38bdf8';
+            mCtx.lineWidth = 1.5;
+
+            // Upper Cone (Future Light-Cone)
+            mCtx.beginPath();
+            mCtx.moveTo(cx, cy);
+            mCtx.lineTo(cx - Math.tan(coneAngle) * cy, 0);
+            mCtx.lineTo(cx + Math.tan(coneAngle) * cy, 0);
+            mCtx.closePath();
+            mCtx.fill();
+            mCtx.stroke();
+
+            // Lower Cone (Past Light-Cone)
+            mCtx.beginPath();
+            mCtx.moveTo(cx, cy);
+            mCtx.lineTo(cx - Math.tan(coneAngle) * cy, h);
+            mCtx.lineTo(cx + Math.tan(coneAngle) * cy, h);
+            mCtx.closePath();
+            mCtx.fill();
+            mCtx.stroke();
+
+            mCtx.fillStyle = '#f0f9ff';
+            mCtx.font = '8px monospace';
+            mCtx.fillText("FUTURE (FTL CONE)", cx - 40, 12);
+            mCtx.fillText("PAST CONE", cx - 25, h - 6);
+        }
+
+        // --- THREE.JS 3D HOLOGRAPHIC VIEWPORT ---
+        const container = document.getElementById('viewport-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        camera.position.set(0, 3.5, 9);
+        camera.lookAt(0, 0, 0);
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const pointLight = new THREE.PointLight(0x38bdf8, 2, 50);
+        pointLight.position.set(0, 5, 5);
+        scene.add(pointLight);
+
+        // Grid Distortion Mesh
+        const gridHelper = new THREE.GridHelper(16, 20, 0x06b6d4, 0x1e293b);
+        gridHelper.position.y = -2;
+        scene.add(gridHelper);
+
+        // Warp Bubble Sphere Geometry
+        const bubbleGeometry = new THREE.SphereGeometry(2.5, 36, 36);
+        const bubbleMaterial = new THREE.MeshBasicMaterial({
+            color: 0x38bdf8,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.45
+        });
+        const warpBubble = new THREE.Mesh(bubbleGeometry, bubbleMaterial);
+        scene.add(warpBubble);
+
+        // Interactive Particle Stream
+        const particleCount = 200;
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            particlePositions[i] = (Math.random() - 0.5) * 15;
+            particlePositions[i + 1] = (Math.random() - 0.5) * 10;
+            particlePositions[i + 2] = (Math.random() - 0.5) * 15;
+        }
+
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        const particleMat = new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.08, transparent: true, opacity: 0.7 });
+        const particleSystem = new THREE.Points(particlesGeo, particleMat);
+        scene.add(particleSystem);
+
+        // Spacecraft Mesh
+        const spacecraft = new THREE.Mesh(
+            new THREE.ConeGeometry(0.4, 1.2, 16),
+            new THREE.MeshStandardMaterial({ color: 0xf0f9ff, emissive: 0x0284c7 })
+        );
+        spacecraft.geometry.rotateX(Math.PI / 2);
+        scene.add(spacecraft);
+
+        // Main Render Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            const warpVal = parseFloat(sliderWarp.value);
+
+            // Bubble Rotation & Color Doppler Shift
+            warpBubble.rotation.y += 0.01 + (warpVal * 0.002);
+
+            if (antigravityActive) {
+                warpBubble.material.color.setHex(0xc084fc);
+                particleMat.color.setHex(0xc084fc);
+                warpBubble.scale.set(1.25 + Math.sin(Date.now() * 0.03) * 0.08, 1.25, 1.25);
+            } else if (shockwaveActive) {
+                warpBubble.material.color.setHex(0xef4444);
+                particleMat.color.setHex(0xef4444);
+                warpBubble.scale.set(1.15, 1.15, 1.15);
+            } else {
+                warpBubble.material.color.setHex(0x38bdf8);
+                particleMat.color.setHex(0x38bdf8);
+                warpBubble.scale.set(1 + (warpVal * 0.015), 1 + (warpVal * 0.015), 1 + (warpVal * 0.015));
+            }
+
+            // Particle Stream Velocity Shift
+            const positions = particleSystem.geometry.attributes.position.array;
+            for (let i = 2; i < particleCount * 3; i += 3) {
+                positions[i] -= 0.05 * (warpVal / 2);
+                if (positions[i] < -7.5) positions[i] = 7.5;
+            }
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+
+            spacecraft.rotation.z += 0.02;
+
+            // Render HUD Display Canvases
+            drawFFTSpectrum();
+            drawMinkowskiDiagram();
+            renderHeatmapMatrix(warpVal);
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function() {
+            animate();
+            updateWarpData();
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+</body>
+</html>

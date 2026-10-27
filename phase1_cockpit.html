@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT QUANTUM-GRAV | Next-Gen Hypersonic Flight Deck</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cockpitDark: '#02060f',
+                        panelBg: '#050b14',
+                        crtGreen: '#00ff66',
+                        crtCyan: '#00f0ff',
+                        amberWarn: '#ffaa00',
+                        crimsonAlert: '#ff3333',
+                    },
+                    fontFamily: {
+                        mono: ['Courier New', Courier, monospace],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js for real-time telemetry graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Three.js for 3D Space-Time Warp Curvature & Trajectory Mapping -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Custom Cockpit Styling & CRT Glow Effects */
+        body {
+            background-color: #02060f;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: hidden;
+        }
+        .crt-screen {
+            background: rgba(2, 10, 5, 0.95);
+            border: 2px solid #00aa44;
+            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.25), 0 0 25px rgba(0, 170, 68, 0.2);
+            border-radius: 8px;
+            position: relative;
+        }
+        .crt-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 10;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            border-radius: 8px;
+        }
+        .overhead-panel {
+            background: linear-gradient(180deg, #090e17 0%, #03060d 100%);
+            border-bottom: 2px solid #1e293b;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .warning-strip {
+            background: #110800;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+            box-shadow: inset 0 0 10px rgba(255, 170, 0, 0.2);
+            animation: pulse-warn 2s infinite;
+        }
+        @keyframes pulse-warn {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: inset 0 0 18px rgba(255, 170, 0, 0.4); }
+            100% { opacity: 0.8; }
+        }
+        /* Custom Physical Flight Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #0a192f;
+            height: 8px;
+            border-radius: 4px;
+            border: 1px solid #00aa44;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: #00ff66;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ff66;
+            border: 2px solid #02060f;
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: #00ff66;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ff66;
+            border: 2px solid #02060f;
+        }
+        /* Analog Dial Ring */
+        .analog-dial {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #00aa44;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,255,102,0.3);
+            background: radial-gradient(circle, #020a05 0%, #000201 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- OVERHEAD WARNING STRIP -->
+    <div class="overhead-panel px-4 py-2 flex items-center justify-between text-xs tracking-widest font-bold">
+        <div class="flex items-center space-x-4">
+            <span class="px-2 py-1 bg-red-950 text-red-400 border border-red-600 rounded">SYS ALARM: OFF</span>
+            <span class="warning-strip px-3 py-1 rounded">⚠️ FLUX OVERHEAT [OK] &nbsp;|&nbsp; HTSC CRYOGENIC PUMP [ACTIVE] &nbsp;|&nbsp; TAJMAR G-DAMPENER [LOCKED]</span>
+        </div>
+        <div class="flex items-center space-x-6 text-cyan-400">
+            <span>ZULU TIME: <span id="zulu-clock" class="text-white font-mono">13:29:45 Z</span></span>
+            <span class="px-3 py-1 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full animate-pulse">● DECK LINK SECURE</span>
+        </div>
+    </div>
+
+    <!-- MAIN COCKPIT DECK GRID -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
+
+        <!-- LEFT CONSOLE: FLIGHT THROTTLE CONTROLS & AI PILOT -->
+        <div class="lg:col-span-3 crt-screen p-4 flex flex-col justify-between space-y-4">
+            <div>
+                <div class="flex items-center justify-between border-b border-emerald-800 pb-2 mb-4">
+                    <h2 class="text-xs font-bold text-emerald-400 tracking-wider flex items-center gap-2">
+                        <span>🕹️</span> FLIGHT THROTTLE CONTROLS
+                    </h2>
+                    <span class="text-[10px] text-emerald-500 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700">MANUAL / DRL</span>
+                </div>
+
+                <!-- Slider 1: Airspeed Velocity -->
+                <div class="mb-5">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-emerald-300">Airspeed Velocity (Mach)</span>
+                        <span id="val-mach" class="text-emerald-400 font-bold">11.50</span>
+                    </div>
+                    <input type="range" id="slider-mach" min="1.0" max="25.0" step="0.05" value="11.5">
+                    <div class="flex justify-between text-[10px] text-emerald-600 mt-1">
+                        <span>Mach 1.0 (Subsonic)</span>
+                        <span>Mach 25.0 (Hypersonic)</span>
+                    </div>
+                </div>
+
+                <!-- Slider 2: Gravimetric Voltage -->
+                <div class="mb-5">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-emerald-300">Gravimetric Field Voltage (MV)</span>
+                        <span id="val-voltage" class="text-emerald-400 font-bold">850.00</span>
+                    </div>
+                    <input type="range" id="slider-voltage" min="0" max="2000" step="1.0" value="850">
+                    <div class="flex justify-between text-[10px] text-emerald-600 mt-1">
+                        <span>0 MV</span>
+                        <span>2000 MV</span>
+                    </div>
+                </div>
+
+                <!-- Slider 3: Warp Density Index -->
+                <div class="mb-5">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-emerald-300">Warp Field Density Index</span>
+                        <span id="val-warp" class="text-emerald-400 font-bold">6.20</span>
+                    </div>
+                    <input type="range" id="slider-warp" min="0.0" max="20.0" step="0.05" value="6.20">
+                    <div class="flex justify-between text-[10px] text-emerald-600 mt-1">
+                        <span>0.0</span>
+                        <span>20.0</span>
+                    </div>
+                </div>
+
+                <!-- Autonomous AI Pilot Select -->
+                <div class="mt-4 pt-3 border-t border-emerald-900">
+                    <label class="block text-xs text-emerald-300 mb-1">🤖 Autonomous AI Pilot</label>
+                    <select id="ai-pilot-mode" class="w-full bg-black border border-emerald-600 text-emerald-400 text-xs rounded p-2 focus:outline-none focus:border-cyan-400">
+                        <option>Manual Override</option>
+                        <option>PyTorch DRL Autonomous v2</option>
+                        <option>Relativistic Auto-Sync</option>
+                        <option>Quantum Orbital Guidance</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- EMERGENCY FLUX DUMP BUTTON -->
+            <div>
+                <button id="btn-emergency" class="w-full py-3 px-4 bg-gradient-to-r from-red-950 to-red-900 border-2 border-red-600 text-red-200 font-bold text-xs tracking-widest rounded shadow-[0_0_15px_rgba(255,51,51,0.5)] hover:bg-red-800 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span>🚨</span> EMERGENCY FLUX DUMP
+                </button>
+                <div class="text-[10px] text-center text-emerald-600 mt-2">SECURE AVIONICS BUS v4.82</div>
+            </div>
+        </div>
+
+        <!-- CENTER & RIGHT DASHBOARD MFD SCREENS & ANALOG GAUGES -->
+        <div class="lg:col-span-9 flex flex-col space-y-4">
+
+            <!-- TOP ANALOG CLUSTERS & DIGITAL TELEMETRY READOUTS -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Analog Dial 1 -->
+                <div class="crt-screen p-3 flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] text-emerald-500">CABIN PRESSURE</div>
+                        <div id="readout-pressure" class="text-lg font-bold text-emerald-400 mt-1">101.3 kPa</div>
+                        <div class="text-[9px] text-cyan-400 mt-1">STABLE</div>
+                    </div>
+                    <div class="analog-dial">
+                        <div id="needle-pressure" style="width: 2px; height: 35px; background: #ff3333; position: absolute; bottom: 45px; transform-origin: bottom center; transform: rotate(45deg); box-shadow: 0 0 6px #ff3333;"></div>
+                        <div class="w-3 h-3 bg-emerald-400 rounded-full border border-black z-10"></div>
+                    </div>
+                </div>
+
+                <!-- Analog Dial 2 -->
+                <div class="crt-screen p-3 flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] text-emerald-500">HTSC CRYO TEMP</div>
+                        <div id="readout-temp" class="text-lg font-bold text-emerald-400 mt-1">77.42 K</div>
+                        <div class="text-[9px] text-cyan-400 mt-1">LIQUID NITROGEN</div>
+                    </div>
+                    <div class="analog-dial">
+                        <div id="needle-temp" style="width: 2px; height: 35px; background: #00f0ff; position: absolute; bottom: 45px; transform-origin: bottom center; transform: rotate(-30deg); box-shadow: 0 0 6px #00f0ff;"></div>
+                        <div class="w-3 h-3 bg-emerald-400 rounded-full border border-black z-10"></div>
+                    </div>
+                </div>
+
+                <!-- Digital Readout Box 1 -->
+                <div class="crt-screen p-3 flex flex-col justify-between">
+                    <div class="flex justify-between items-center text-[10px] text-emerald-500">
+                        <span>Cockpit Time Drift</span>
+                        <span>[RELATIVISTIC]</span>
+                    </div>
+                    <div id="readout-timedrift" class="text-xl font-bold text-emerald-400 my-1">0.0 ms</div>
+                    <div class="text-[10px] text-emerald-600">Reference: UTC-0</div>
+                </div>
+
+                <!-- Digital Readout Box 2 -->
+                <div class="crt-screen p-3 flex flex-col justify-between">
+                    <div class="flex justify-between items-center text-[10px] text-emerald-500">
+                        <span>Lorentz Gamma (γ)</span>
+                        <span>[SPECIAL REL]</span>
+                    </div>
+                    <div id="readout-gamma" class="text-xl font-bold text-cyan-400 my-1">1.0000</div>
+                    <div class="text-[10px] text-emerald-600">Velocity Factor: OK</div>
+                </div>
+            </div>
+
+            <!-- MIDDLE ROW: MFD-1 (PRIMARY FLIGHT DISPLAY) & MFD-2 (RELATIVISTIC SLIP GRAPH) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- MFD-1: CRT Primary Flight Display (HUD) -->
+                <div class="crt-screen p-4 flex flex-col h-[280px]">
+                    <div class="flex justify-between items-center border-b border-emerald-900 pb-1 mb-2 text-xs">
+                        <span class="text-emerald-400 font-bold">🟢 MFD-1: PRIMARY FLIGHT DISPLAY (CRT HUD)</span>
+                        <span id="hud-status-mode" class="text-cyan-400 text-[10px]">MODE: Manual Override</span>
+                    </div>
+                    <div class="flex-1 relative flex items-center justify-center bg-black/60 rounded border border-emerald-900/50 overflow-hidden">
+                        <!-- Artificial Horizon Canvas -->
+                        <canvas id="hudCanvas" class="absolute inset-0 w-full h-full"></canvas>
+                        <!-- HUD Crosshairs & Readouts Overlay -->
+                        <div class="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between text-[11px] font-mono text-emerald-400">
+                            <div class="flex justify-between">
+                                <span id="hud-speed">SPEED: MACH 11.5</span>
+                                <span>ALT: 92,500 FT</span>
+                            </div>
+                            <div class="flex justify-center">
+                                <div class="w-10 h-10 border-2 border-red-500 rounded-full flex items-center justify-center shadow-[0_0_10px_#ff3333]">
+                                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <span id="hud-mode">MODE: COMBAT CRUISE</span>
+                                <span id="hud-sonic">SONIC: 24.1 dB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MFD-2: Relativistic Microsecond Time Slip vs Velocity -->
+                <div class="crt-screen p-4 flex flex-col h-[280px]">
+                    <div class="flex justify-between items-center border-b border-emerald-900 pb-1 mb-2 text-xs">
+                        <span class="text-emerald-400 font-bold">🟢 MFD-2: RELATIVISTIC TIME SLIP vs VELOCITY</span>
+                        <span class="text-cyan-400 text-[10px]">CH-2 LIVE</span>
+                    </div>
+                    <div class="flex-1 relative bg-black/60 rounded border border-emerald-900/50 p-2">
+                        <canvas id="timeSlipChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM ROW: MFD-3 (AERODYNAMIC DRAG GAUGE), MFD-4 (3D SPACE-TIME WARP), MFD-5 (TELEMETRY LOG) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- MFD-3: Drag Suppression Gauge -->
+                <div class="crt-screen p-4 flex flex-col h-[260px] items-center justify-between">
+                    <div class="w-full flex justify-between items-center text-xs border-b border-emerald-900 pb-1">
+                        <span class="text-emerald-400 font-bold">🟢 MFD-3: DRAG SUPPRESSION</span>
+                        <span class="text-cyan-400 text-[10px]">ACTIVE G</span>
+                    </div>
+                    <div class="relative w-40 h-40 flex items-center justify-center">
+                        <canvas id="dragGaugeCanvas" width="160" height="160"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center mt-4">
+                            <span id="drag-percent-val" class="text-2xl font-bold text-emerald-400">97.63%</span>
+                            <span class="text-[9px] text-emerald-600">REDUCTION</span>
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-emerald-500">TAJMAR FIELD: <span class="text-cyan-400">STABLE</span></div>
+                </div>
+
+                <!-- MFD-4: 3D Space-Time Warp Curvature Canvas (Three.js) -->
+                <div class="crt-screen p-4 flex flex-col h-[260px]">
+                    <div class="flex justify-between items-center text-xs border-b border-emerald-900 pb-1 mb-2">
+                        <span class="text-emerald-400 font-bold">🟢 MFD-4: 3D WARP CURVATURE</span>
+                        <span class="text-cyan-400 text-[10px]">T00 TENSOR</span>
+                    </div>
+                    <div id="threeContainer" class="flex-1 w-full bg-black/80 rounded border border-emerald-900/50 overflow-hidden relative"></div>
+                </div>
+
+                <!-- MFD-5: Avionics Telemetry Log -->
+                <div class="crt-screen p-4 flex flex-col h-[260px]">
+                    <div class="flex justify-between items-center text-xs border-b border-emerald-900 pb-1 mb-2">
+                        <span class="text-emerald-400 font-bold">🟢 MFD-5: AVIONICS LOG</span>
+                        <span class="text-cyan-400 text-[10px]">SECURE</span>
+                    </div>
+                    <div id="telemetry-terminal" class="flex-1 bg-black/90 p-3 rounded border border-emerald-900 text-[11px] font-mono text-emerald-400 overflow-y-auto leading-relaxed">
+                        [SYS] CRT High-Precision avionics link active.<br>
+                        [AI_PILOT] Sensor fusion matrix verified.<br>
+                        [WARP] T00 tensor responsive to fine throttle.<br>
+                        [STATUS] All cockpit MFD channels operational.<br>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT: Real-time Physics Engine, Controls & Interactive Simulation -->
+    <script>
+        // --- ZULU CLOCK ---
+        setInterval(() => {
+            const now = new Date();
+            const utcString = now.toUTCString().split(' ')[4] + ' Z';
+            document.getElementById('zulu-clock').innerText = utcString;
+        }, 1000);
+
+        // --- STATE & PHYSICS CALCULATION ---
+        let state = {
+            mach: 11.5,
+            voltage: 850.0,
+            warpDensity: 6.20,
+            aiMode: "Manual Override"
+        };
+
+        const sliderMach = document.getElementById('slider-mach');
+        const sliderVoltage = document.getElementById('slider-voltage');
+        const sliderWarp = document.getElementById('slider-warp');
+        const selectAi = document.getElementById('ai-pilot-mode');
+
+        const valMach = document.getElementById('val-mach');
+        const valVoltage = document.getElementById('val-voltage');
+        const valWarp = document.getElementById('val-warp');
+
+        function updatePhysics() {
+            state.mach = parseFloat(sliderMach.value);
+            state.voltage = parseFloat(sliderVoltage.value);
+            state.warpDensity = parseFloat(sliderWarp.value);
+            state.aiMode = selectAi.value;
+
+            valMach.value = state.mach;
+            valMach.innerText = state.mach.toFixed(2);
+            valVoltage.value = state.voltage;
+            valVoltage.innerText = state.voltage.toFixed(2);
+            valWarp.value = state.warpDensity;
+            valWarp.innerText = state.warpDensity.toFixed(2);
+
+            // Calculated metrics
+            const dragRed = Math.min(99.99, 45.0 + (state.voltage * 0.04) + (state.mach * 1.5));
+            const cryoTemp = 77.0 + (state.voltage * 0.02) + (state.warpDensity * 0.3);
+            const gamma = 1.0 / Math.sqrt(Math.max(0.01, 1.0 - Math.pow(state.mach / 30.0, 2)));
+            const timeSlip = (gamma - 1.0) * 1400.0; // microseconds
+            const sonicDb = Math.max(12.0, 45.0 - (state.warpDensity * 1.8));
+
+            // Update UI Readouts
+            document.getElementById('drag-percent-val').innerText = dragRed.toFixed(2) + '%';
+            document.getElementById('readout-temp').innerText = cryoTemp.toFixed(2) + ' K';
+            document.getElementById('readout-gamma').innerText = gamma.toFixed(4);
+            document.getElementById('readout-timedrift').innerText = (timeSlip * 0.001).toFixed(2) + ' ms';
+            document.getElementById('readout-pressure').innerText = (101.3 - (state.mach * 0.2)).toFixed(1) + ' kPa';
+
+            // HUD labels
+            document.getElementById('hud-speed').innerText = `SPEED: MACH ${state.mach.toFixed(2)}`;
+            document.getElementById('hud-mode').innerText = `MODE: ${state.aiMode}`;
+            document.getElementById('hud-sonic').innerText = `SONIC: ${sonicDb.toFixed(1)} dB`;
+            document.getElementById('hud-status-mode').innerText = `MODE: ${state.aiMode}`;
+
+            // Analog needles rotation
+            const needlePress = document.getElementById('needle-pressure');
+            const needleTemp = document.getElementById('needle-temp');
+            needlePress.style.transform = `rotate(${((state.mach / 25.0) * 240) - 120}deg)`;
+            needleTemp.style.transform = `rotate(${((cryoTemp - 75) / 50 * 240) - 120}deg)`;
+
+            // Update Chart & Drag Gauge
+            updateTimeSlipChart(state.warpDensity);
+            drawDragGauge(dragRed);
+            logTerminalEvent();
+        }
+
+        sliderMach.addEventListener('input', updatePhysics);
+        sliderVoltage.addEventListener('input', updatePhysics);
+        sliderWarp.addEventListener('input', updatePhysics);
+        selectAi.addEventListener('change', updatePhysics);
+
+        // Emergency Flux Dump button
+        document.getElementById('btn-emergency').addEventListener('click', () => {
+            sliderVoltage.value = 0;
+            sliderWarp.value = 0;
+            sliderMach.value = 1.0;
+            updatePhysics();
+            addTerminalLog("🚨 EMERGENCY FLUX DUMP ACTIVATED! FIELD COLLAPSED.");
+        });
+
+        function addTerminalLog(msg) {
+            const term = document.getElementById('telemetry-terminal');
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            term.innerHTML += `[${timeStr}] ${msg}<br>`;
+            term.scrollTop = term.scrollHeight;
+        }
+
+        let lastLogTime = 0;
+        function logTerminalEvent() {
+            const now = Date.now();
+            if (now - lastLogTime > 8000) {
+                lastLogTime = now;
+                addTerminalLog(`[TELEMETRY] Mach ${state.mach.toFixed(1)} | Voltage ${state.voltage.toFixed(0)}MV | T00 Stable.`);
+            }
+        }
+
+        // --- CHART.JS: RELATIVISTIC TIME SLIP CHART ---
+        const ctxChart = document.getElementById('timeSlipChart').getContext('2d');
+        const timeSlipChart = new Chart(ctxChart, {
+            type: 'line',
+            data: {
+                labels: [2, 5, 8, 11, 14, 17, 20, 23],
+                datasets: [{
+                    label: 'Time Slip (μs)',
+                    data: [120, 350, 780, 1450, 2600, 4300, 7100, 11200],
+                    borderColor: '#00ff66',
+                    backgroundColor: 'rgba(0, 255, 102, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#00f0ff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(0, 51, 17, 0.5)' },
+                        ticks: { color: '#00ff66', font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(0, 51, 17, 0.5)' },
+                        ticks: { color: '#00ff66', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        function updateTimeSlipChart(warpD) {
+            const machs = [2, 5, 8, 11, 14, 17, 20, 23];
+            const newData = machs.map(m => {
+                const g = 1.0 / Math.sqrt(Math.max(0.01, 1.0 - Math.pow(m / 30.0, 2)));
+                return Math.round((g - 1.0) * 1200.0 * (warpD / 6.2));
+            });
+            timeSlipChart.data.datasets[0].data = newData;
+            timeSlipChart.update('none');
+        }
+
+        // --- CANVAS GAUGE: MFD-3 DRAG SUPPRESSION ---
+        const dragCanvas = document.getElementById('dragGaugeCanvas');
+        const dragCtx = dragCanvas.getContext('2d');
+        function drawDragGauge(percent) {
+            dragCtx.clearRect(0, 0, dragCanvas.width, dragCanvas.height);
+            const cx = dragCanvas.width / 2;
+            const cy = dragCanvas.height / 2;
+            const radius = 60;
+
+            // Background arc
+            dragCtx.beginPath();
+            dragCtx.arc(cx, cy, radius, Math.PI * 0.8, Math.PI * 2.2);
+            dragCtx.strokeStyle = '#00220d';
+            dragCtx.lineWidth = 10;
+            dragCtx.stroke();
+
+            // Value arc
+            const angleEnd = Math.PI * 0.8 + (percent / 100) * (Math.PI * 1.4);
+            dragCtx.beginPath();
+            dragCtx.arc(cx, cy, radius, Math.PI * 0.8, angleEnd);
+            dragCtx.strokeStyle = '#00ff66';
+            dragCtx.lineWidth = 10;
+            dragCtx.shadowColor = '#00ff66';
+            dragCtx.shadowBlur = 10;
+            dragCtx.stroke();
+            dragCtx.shadowBlur = 0;
+        }
+
+        // --- HUD CANVAS: ARTIFICIAL HORIZON ---
+        const hudCanvas = document.getElementById('hudCanvas');
+        const hudCtx = hudCanvas.getContext('2d');
+        function drawHUD() {
+            hudCanvas.width = hudCanvas.clientWidth;
+            hudCanvas.height = hudCanvas.clientHeight;
+            hudCtx.clearRect(0, 0, hudCanvas.width, hudCanvas.height);
+
+            const cx = hudCanvas.width / 2;
+            const cy = hudCanvas.height / 2;
+            
+            // Pitch ladder lines
+            hudCtx.strokeStyle = '#00ff66';
+            hudCtx.lineWidth = 1.5;
+            
+            const pitchOffset = (state.mach - 11.5) * 8;
+            for (let i = -2; i <= 2; i++) {
+                if (i === 0) continue;
+                const yPos = cy + (i * 35) + pitchOffset;
+                hudCtx.beginPath();
+                hudCtx.moveTo(cx - 40, yPos);
+                hudCtx.lineTo(cx - 15, yPos);
+                hudCtx.moveTo(cx + 15, yPos);
+                hudCtx.lineTo(cx + 40, yPos);
+                hudCtx.stroke();
+            }
+            requestAnimationFrame(drawHUD);
+        }
+        requestAnimationFrame(drawHUD);
+
+        // --- THREE.JS: 3D SPACE-TIME WARP CURVATURE MFD ---
+        const container = document.getElementById('threeContainer');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const geometry = new THREE.PlaneGeometry(6, 6, 25, 25);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff66, wireframe: true });
+        const warpMesh = new THREE.Mesh(geometry, material);
+        warpMesh.rotation.x = -Math.PI / 3;
+        scene.add(warpMesh);
+
+        camera.position.set(0, -5, 5);
+        camera.lookAt(0, 0, 0);
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const positions = geometry.attributes.position;
+            const time = Date.now() * 0.003;
+            const density = state.warpDensity;
+
+            for (let i = 0; i < positions.count; i++) {
+                const x = positions.getX(i);
+                const y = positions.getY(i);
+                const distance = Math.sqrt(x * x + y * y);
+                const z = - (density * 0.3) * Math.exp(-distance * 0.5) * Math.cos(distance - time);
+                positions.setZ(i, z);
+            }
+            positions.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+        animateThree();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // Initial trigger
+        updatePhysics();
+    </script>
+</body>
+</html>

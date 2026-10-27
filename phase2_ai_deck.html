@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT QUANTUM-GRAV - Phase 2 AI Deck & 3D Neural Inspector</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN for 3D Neural Heatmap & Anti-Gravity Spacetime Grid -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js CDN for Neural Metrics & Reward Curves -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for High-Tech Avionics Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#050914',
+                            panel: '#0a1224',
+                            border: '#162a4a',
+                            accent: '#00f0ff',
+                            neon: '#7000ff',
+                            warn: '#ff0055',
+                            gold: '#ffb700',
+                            antigrav: '#00ffaa'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #050914;
+            color: #e2e8f0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Custom High-Tech Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050914;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #162a4a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(10, 18, 36, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-panel-glow {
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+        }
+
+        .antigrav-glow {
+            border: 1px solid rgba(0, 255, 170, 0.5);
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.25);
+        }
+
+        /* Custom Input Range Styling */
+        input[type=range] {
+            accent-color: #00f0ff;
+        }
+
+        .pulse-light {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px #00f0ff); }
+            50% { opacity: 0.4; filter: drop-shadow(0 0 1px #00f0ff); }
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 gap-3 text-xs md:text-sm">
+
+    <!-- TOP CONTROL HEADER -->
+    <header class="glass-panel rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 border-b border-cyber-accent/30">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyber-accent/20 border border-cyber-accent flex items-center justify-center text-cyber-accent shadow-lg shadow-cyber-accent/20">
+                <i class="fa-solid fa-microchip text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-base md:text-lg font-bold tracking-wider text-white flex items-center gap-2">
+                    PROJECT QUANTUM-GRAV 
+                    <span class="text-xs font-mono px-2 py-0.5 rounded bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/30">PHASE 2 DRL DECK</span>
+                </h1>
+                <p class="text-gray-400 text-xs font-mono">PyTorch Actor-Critic PPO • PINN Physics Core • 3D XAI Heatmap & Anti-Gravity Drive</p>
+            </div>
+        </div>
+
+        <!-- System Controls Header Actions -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Mode Selector -->
+            <div class="flex items-center gap-2 bg-cyber-bg/80 px-3 py-1.5 rounded-lg border border-cyber-border">
+                <span class="text-gray-400 font-mono text-xs">Mode:</span>
+                <select id="ui-mode-select" class="bg-transparent text-cyber-accent font-semibold focus:outline-none cursor-pointer">
+                    <option value="standalone" class="bg-cyber-panel text-white">Standalone AI Deck</option>
+                    <option value="hil_active" class="bg-cyber-panel text-white">HIL Avionics Bus (ARINC 429)</option>
+                    <option value="swarm" class="bg-cyber-panel text-white">Multi-Agent Swarm (N=4)</option>
+                </select>
+            </div>
+
+            <!-- Anti-Gravity Status Pill -->
+            <button id="btn-toggle-antigrav" onclick="toggleAntiGravityDrive()" class="px-3 py-1.5 rounded-lg bg-cyber-antigrav/10 border border-cyber-antigrav/40 text-cyber-antigrav hover:bg-cyber-antigrav/20 transition-all font-mono font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-atom text-sm"></i>
+                <span id="antigrav-pill-text">ANTI-GRAV DRIVE: ACTIVE</span>
+            </button>
+
+            <!-- Navigation Button -->
+            <a href="/" class="px-3 py-1.5 rounded-lg bg-cyber-border/60 hover:bg-cyber-border text-gray-200 transition-all font-semibold flex items-center gap-1">
+                <i class="fa-solid fa-compass text-cyber-accent"></i> PORTAL HUB
+            </a>
+        </div>
+    </header>
+
+    <!-- DASHBOARD 4-COLUMN TOP PANEL LAYOUT -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        
+        <!-- PANEL 1: FLIGHT & HYPERPARAMETERS -->
+        <div class="glass-panel rounded-xl p-4 flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-2">
+                <span class="font-bold text-cyber-accent flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> FLIGHT & HYPERPARAMS
+                </span>
+                <span id="flight-mode-badge" class="px-2 py-0.5 rounded text-[10px] bg-cyber-accent/20 text-cyber-accent font-mono">MANUAL</span>
+            </div>
+
+            <!-- Controls Sliders -->
+            <div class="space-y-3 font-mono">
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Airspeed (Mach):</span>
+                        <span id="val-mach" class="text-cyber-accent font-bold">13.65</span>
+                    </div>
+                    <input type="range" id="slide-mach" min="1" max="25" step="0.1" value="13.65" class="w-full bg-cyber-bg h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Field Voltage (MV):</span>
+                        <span id="val-voltage" class="text-cyber-accent font-bold">1214.00</span>
+                    </div>
+                    <input type="range" id="slide-voltage" min="0" max="2000" step="1" value="1214" class="w-full bg-cyber-bg h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Warp Field Density:</span>
+                        <span id="val-warp" class="text-cyber-accent font-bold">7.45</span>
+                    </div>
+                    <input type="range" id="slide-warp" min="0" max="10" step="0.1" value="7.45" class="w-full bg-cyber-bg h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Anti-Grav Coeff ($\lambda_{g}$):</span>
+                        <span id="val-antigrav-coeff" class="text-cyber-antigrav font-bold">0.88</span>
+                    </div>
+                    <input type="range" id="slide-antigrav-coeff" min="0" max="1" step="0.01" value="0.88" class="w-full bg-cyber-bg h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Learning Rate ($\alpha$):</span>
+                        <span id="val-lr" class="text-cyber-gold font-bold">0.0010</span>
+                    </div>
+                    <input type="range" id="slide-lr" min="0.0001" max="0.01" step="0.0001" value="0.0010" class="w-full bg-cyber-bg h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-2 pt-2">
+                <button id="btn-execute-step" onclick="executeDRLStep()" class="w-full py-2 rounded-lg bg-cyber-accent/20 border border-cyber-accent text-cyber-accent hover:bg-cyber-accent hover:text-black font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyber-accent/10">
+                    <i class="fa-solid fa-bolt"></i> EXECUTE DRL STEP
+                </button>
+                <button id="btn-auto-train" onclick="toggleAutoTrain()" class="w-full py-2 rounded-lg bg-cyber-antigrav/20 border border-cyber-antigrav text-cyber-antigrav hover:bg-cyber-antigrav hover:text-black font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i> <span id="auto-train-text">START AUTO-TRAIN</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL 2: PPO & NEURAL METRICS (XAI + PINN) -->
+        <div class="glass-panel rounded-xl p-4 flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-2">
+                <span class="font-bold text-cyber-neon flex items-center gap-2">
+                    <i class="fa-solid fa-brain"></i> PPO & NEURAL METRICS
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-cyber-neon/20 text-cyber-neon font-mono">STANDALONE</span>
+            </div>
+
+            <!-- Key Metric Metrics Display -->
+            <div class="space-y-2 font-mono text-xs">
+                <div class="flex justify-between p-2 rounded bg-cyber-bg/60 border border-cyber-border/40">
+                    <span class="text-gray-400">Policy Loss ($\mathcal{L}_{ppo}$):</span>
+                    <span id="metric-policy-loss" class="text-cyber-accent font-bold">0.0084</span>
+                </div>
+                <div class="flex justify-between p-2 rounded bg-cyber-bg/60 border border-cyber-border/40">
+                    <span class="text-gray-400">Value Loss ($\mathcal{L}_{val}$):</span>
+                    <span id="metric-value-loss" class="text-cyber-accent font-bold">0.0035</span>
+                </div>
+                <div class="flex justify-between p-2 rounded bg-cyber-bg/60 border border-cyber-border/40">
+                    <span class="text-gray-400">PINN Physics Loss ($\mathcal{L}_{phys}$):</span>
+                    <span id="metric-pinn-loss" class="text-cyber-gold font-bold">0.0012</span>
+                </div>
+                <div class="flex justify-between p-2 rounded bg-cyber-bg/60 border border-cyber-border/40">
+                    <span class="text-gray-400">Policy Confidence:</span>
+                    <span id="metric-confidence" class="text-cyber-antigrav font-bold">98.45%</span>
+                </div>
+                <div class="flex justify-between p-2 rounded bg-cyber-bg/60 border border-cyber-border/40">
+                    <span class="text-gray-400">Reward Score:</span>
+                    <span id="metric-reward" class="text-cyber-accent font-bold">96.80</span>
+                </div>
+                <div class="flex justify-between p-2 rounded bg-cyber-bg/60 border border-cyber-border/40">
+                    <span class="text-gray-400">Experience Buffer Size:</span>
+                    <span id="metric-buffer" class="text-gray-200 font-bold">482 / 1000</span>
+                </div>
+            </div>
+
+            <!-- Swarm / Turbulence Trigger Controls -->
+            <div class="flex flex-col gap-2 pt-2">
+                <button id="btn-toggle-swarm" onclick="toggleSwarmFleet()" class="w-full py-2 rounded-lg bg-cyber-gold/20 border border-cyber-gold text-cyber-gold hover:bg-cyber-gold hover:text-black font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-network-wired"></i> TOGGLE SWARM FLEET
+                </button>
+                <button id="btn-inject-turbulence" onclick="injectTurbulence()" class="w-full py-2 rounded-lg bg-cyber-warn/20 border border-cyber-warn text-cyber-warn hover:bg-cyber-warn hover:text-white font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> INJECT TURBULENCE
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL 3: REWARD SHAPING & LOSS CURVES -->
+        <div class="glass-panel rounded-xl p-4 flex flex-col justify-between gap-2">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-1">
+                <span class="font-bold text-cyber-accent flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line"></i> REWARD & LOSS CURVES
+                </span>
+                <span class="text-[10px] text-gray-400 font-mono">LIVE EPOCHS</span>
+            </div>
+
+            <!-- Chart Container 1: Line Chart -->
+            <div class="h-28 relative">
+                <canvas id="chart-reward"></canvas>
+            </div>
+
+            <div class="text-[11px] font-bold text-gray-300 border-t border-cyber-border/40 pt-1 flex justify-between">
+                <span>REWARD SHAPING BREAKDOWN</span>
+                <span id="breakdown-total" class="text-cyber-accent font-mono">EFF: 96.2%</span>
+            </div>
+
+            <!-- Chart Container 2: Bar Chart -->
+            <div class="h-24 relative">
+                <canvas id="chart-breakdown"></canvas>
+            </div>
+        </div>
+
+        <!-- PANEL 4: HITL FAILSAFE & TELEMETRY LOG -->
+        <div class="glass-panel rounded-xl p-4 flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-2">
+                <span class="font-bold text-cyber-warn flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> HITL FAILSAFE & ARINC BUS
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-cyber-warn/20 text-cyber-warn font-mono">FAILSAFE ACTIVE</span>
+            </div>
+
+            <!-- Emergency Override Button -->
+            <button id="btn-hitl-override" onclick="triggerHitlEmergency()" class="w-full py-2.5 rounded-lg bg-cyber-warn text-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-cyber-warn/30 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-hand"></i> HITL EMERGENCY OVERRIDE
+            </button>
+
+            <!-- ARINC 429 Bus Status Indicator -->
+            <div class="flex items-center justify-between text-xs font-mono p-2 rounded bg-cyber-bg/80 border border-cyber-border">
+                <span class="text-gray-400">ARINC 429 Avionics Bus:</span>
+                <span id="arinc-status" class="text-cyber-antigrav font-bold flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-cyber-antigrav pulse-light"></span> STREAMING (100Hz)
+                </span>
+            </div>
+
+            <!-- Telemetry Log Terminal -->
+            <div class="flex flex-col gap-1">
+                <span class="text-[10px] text-gray-400 font-mono flex items-center gap-1">
+                    <i class="fa-solid fa-terminal text-cyber-accent"></i> ADVANCED TELEMETRY LOG
+                </span>
+                <div id="telemetry-log" class="h-32 bg-cyber-bg/90 rounded-lg p-2 border border-cyber-border/60 font-mono text-[10px] text-cyber-accent/90 overflow-y-auto space-y-1">
+                    <p class="text-gray-500">[INIT] PyTorch PPO Actor-Critic Core Loaded.</p>
+                    <p class="text-cyber-antigrav">[READY] Anti-Gravity Scalar Field drive standing by.</p>
+                    <p class="text-gray-400">[ARINC] Avionics Bus active on /dev/quantum-bus.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3D INTERACTIVE VIEWPORTS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1 flex-1">
+        
+        <!-- 3D VIEWPORT A: PYTORCH NEURAL NETWORK & HEATMAP INSPECTOR -->
+        <div class="glass-panel rounded-xl p-3 flex flex-col justify-between gap-2 relative min-h-[350px]">
+            <div class="flex items-center justify-between border-b border-cyber-border/60 pb-2 z-10">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-cyber-neon pulse-light"></span>
+                    <h3 class="font-bold text-white text-xs md:text-sm font-mono tracking-wide">
+                        3D PYTORCH NEURAL NETWORK & LAYER HEATMAP (XAI)
+                    </h3>
+                </div>
+                <div class="flex items-center gap-3 text-[10px] font-mono text-gray-400">
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Input</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Hidden</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Actor/Critic</span>
+                </div>
+            </div>
+
+            <!-- Canvas Container for Neural Network -->
+            <div id="canvas-container-nn" class="w-full h-full min-h-[300px] rounded-lg overflow-hidden relative">
+                <!-- Overlay HUD inside 3D Inspector -->
+                <div class="absolute top-2 left-2 z-10 pointer-events-none text-[10px] font-mono bg-cyber-bg/80 p-2 rounded border border-cyber-border/50 backdrop-blur">
+                    <div class="text-cyber-accent font-bold">Transformer Attention: Active</div>
+                    <div class="text-gray-400">Layer 1 Weight Heatmap: <span id="nn-weight-val" class="text-white">0.742</span></div>
+                    <div class="text-gray-400">Activation Function: <span class="text-cyber-gold">LeakyReLU / Tanh</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D VIEWPORT B: 3D TRAJECTORY & ANTI-GRAVITY SPACETIME GRID SIMULATION -->
+        <div id="antigrav-container-panel" class="glass-panel rounded-xl p-3 flex flex-col justify-between gap-2 relative min-h-[350px] transition-all duration-500">
+            <div class="flex items-center justify-between border-b border-cyber-border/60 pb-2 z-10">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-cyber-antigrav pulse-light"></span>
+                    <h3 class="font-bold text-white text-xs md:text-sm font-mono tracking-wide">
+                        3D SPACETIME CURVATURE & ANTI-GRAVITY FIELD SIMULATION
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] font-mono">
+                    <span id="grid-status-tag" class="px-2 py-0.5 rounded bg-cyber-antigrav/20 text-cyber-antigrav border border-cyber-antigrav/30">GRID: SMOOTH</span>
+                </div>
+            </div>
+
+            <!-- Canvas Container for Spacetime Grid -->
+            <div id="canvas-container-grid" class="w-full h-full min-h-[300px] rounded-lg overflow-hidden relative">
+                <!-- Overlay HUD inside Spacetime Inspector -->
+                <div class="absolute top-2 left-2 z-10 pointer-events-none text-[10px] font-mono bg-cyber-bg/80 p-2 rounded border border-cyber-border/50 backdrop-blur">
+                    <div class="text-cyber-antigrav font-bold">Scalar Field Vector: Repulsive ($\nabla \Phi_g$)</div>
+                    <div class="text-gray-400">Metric Distort Rate: <span id="grid-distortion-val" class="text-white">0.02 G</span></div>
+                    <div class="text-gray-400">Repulsion Force: <span id="grid-repulsion-val" class="text-cyber-antigrav">9.81 m/s²</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // -------------------------------------------------------------
+        // GLOBAL STATE & VARIABLES
+        // -------------------------------------------------------------
+        let autoTrainInterval = null;
+        let isAutoTraining = false;
+        let isAntiGravActive = true;
+        let isSwarmActive = false;
+        let turbulenceNoise = 0.0;
+        let currentStep = 1;
+
+        // UI Slider Handles
+        const slideMach = document.getElementById('slide-mach');
+        const slideVoltage = document.getElementById('slide-voltage');
+        const slideWarp = document.getElementById('slide-warp');
+        const slideAntiGrav = document.getElementById('slide-antigrav-coeff');
+        const slideLr = document.getElementById('slide-lr');
+
+        // -------------------------------------------------------------
+        // CHART.JS INITIALIZATION
+        // -------------------------------------------------------------
+        // 1. Reward & Loss Curve Line Chart
+        const ctxReward = document.getElementById('chart-reward').getContext('2d');
+        const chartReward = new Chart(ctxReward, {
+            type: 'line',
+            data: {
+                labels: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                datasets: [
+                    {
+                        label: 'Reward Score',
+                        data: [84.2, 89.5, 91.8, 95.6, 98.1, 96.8],
+                        borderColor: '#00f0ff',
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'PPO Loss',
+                        data: [0.045, 0.032, 0.021, 0.015, 0.009, 0.008],
+                        borderColor: '#ff0055',
+                        borderWidth: 1.5,
+                        borderDash: [3, 3],
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                    y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#00f0ff', font: { size: 9 } } },
+                    y1: { position: 'right', grid: { display: false }, ticks: { color: '#ff0055', font: { size: 9 } } }
+                }
+            }
+        });
+
+        // 2. Reward Shaping Breakdown Bar Chart
+        const ctxBreakdown = document.getElementById('chart-breakdown').getContext('2d');
+        const chartBreakdown = new Chart(ctxBreakdown, {
+            type: 'bar',
+            data: {
+                labels: ['Mach Eff', 'Voltage Eff', 'Warp Eff', 'Anti-Grav'],
+                datasets: [{
+                    data: [94.5, 88.2, 96.0, 98.5],
+                    backgroundColor: ['#00f0ff', '#7000ff', '#00ffaa', '#ffb700'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                    y: { max: 100, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+                }
+            }
+        });
+
+        // -------------------------------------------------------------
+        // THREE.JS VIEWPORT A: 3D PYTORCH NEURAL NETWORK INSPECTOR
+        // -------------------------------------------------------------
+        const nnContainer = document.getElementById('canvas-container-nn');
+        const sceneNN = new THREE.Scene();
+        const cameraNN = new THREE.PerspectiveCamera(45, nnContainer.clientWidth / nnContainer.clientHeight, 0.1, 1000);
+        cameraNN.position.set(0, 0, 18);
+
+        const rendererNN = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        rendererNN.setSize(nnContainer.clientWidth, nnContainer.clientHeight);
+        rendererNN.setPixelRatio(window.devicePixelRatio);
+        nnContainer.appendChild(rendererNN.domElement);
+
+        // Build Neural Network Layers (Input, Hidden 1, Hidden 2, Output)
+        const layerSizes = [4, 6, 6, 3];
+        const layerXPositions = [-8, -2.5, 3, 8.5];
+        const nodes = [];
+        const connections = [];
+
+        layerSizes.forEach((count, lIndex) => {
+            const x = layerXPositions[lIndex];
+            const yOffset = (count - 1) * 1.5 / 2;
+            const layerNodes = [];
+
+            for (let i = 0; i < count; i++) {
+                const y = i * 1.5 - yOffset;
+                const geometry = new THREE.SphereGeometry(0.38, 32, 32);
+                
+                // Color layer distinction
+                let color = 0x00f0ff; // Input
+                if (lIndex === 1 || lIndex === 2) color = 0x7000ff; // Hidden
+                if (lIndex === 3) color = 0x00ffaa; // Output
+
+                const material = new THREE.MeshBasicMaterial({ color: color, wireframe: false });
+                const nodeMesh = new THREE.Mesh(geometry, material);
+                nodeMesh.position.set(x, y, 0);
+                sceneNN.add(nodeMesh);
+                layerNodes.push(nodeMesh);
+            }
+            nodes.push(layerNodes);
+        });
+
+        // Connect Layers with Dynamic Pulsing Synapses
+        for (let l = 0; l < nodes.length - 1; l++) {
+            const currentLayer = nodes[l];
+            const nextLayer = nodes[l + 1];
+
+            currentLayer.forEach(n1 => {
+                nextLayer.forEach(n2 => {
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints([n1.position, n2.position]);
+                    const lineMat = new THREE.LineBasicMaterial({
+                        color: 0x162a4a,
+                        transparent: true,
+                        opacity: 0.45
+                    });
+                    const line = new THREE.Line(lineGeo, lineMat);
+                    sceneNN.add(line);
+                    connections.push({ line: line, mat: lineMat, n1: n1, n2: n2 });
+                });
+            });
+        }
+
+        // Animation Loop for Neural Network Viewport
+        function animateNN() {
+            requestAnimationFrame(animateNN);
+            
+            // Slow rotation for 3D depth effect
+            sceneNN.rotation.y = Math.sin(Date.now() * 0.0005) * 0.18;
+            sceneNN.rotation.x = Math.cos(Date.now() * 0.0005) * 0.08;
+
+            rendererNN.render(sceneNN, cameraNN);
+        }
+        animateNN();
+
+        // -------------------------------------------------------------
+        // THREE.JS VIEWPORT B: 3D ANTI-GRAVITY SPACETIME GRID
+        // -------------------------------------------------------------
+        const gridContainer = document.getElementById('canvas-container-grid');
+        const sceneGrid = new THREE.Scene();
+        const cameraGrid = new THREE.PerspectiveCamera(45, gridContainer.clientWidth / gridContainer.clientHeight, 0.1, 1000);
+        cameraGrid.position.set(0, 10, 18);
+        cameraGrid.lookAt(0, 0, 0);
+
+        const rendererGrid = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        rendererGrid.setSize(gridContainer.clientWidth, gridContainer.clientHeight);
+        rendererGrid.setPixelRatio(window.devicePixelRatio);
+        gridContainer.appendChild(rendererGrid.domElement);
+
+        // Create Deformable 3D Wireframe Plane Grid
+        const gridWidth = 24;
+        const gridHeight = 24;
+        const gridSegments = 32;
+        const gridGeometry = new THREE.PlaneGeometry(gridWidth, gridHeight, gridSegments, gridSegments);
+        gridGeometry.rotateX(-Math.PI / 2);
+
+        const gridMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00f0ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.35
+        });
+
+        const spacetimeMesh = new THREE.Mesh(gridGeometry, gridMaterial);
+        sceneGrid.add(spacetimeMesh);
+
+        // Central Spacecraft Glowing Orb Node
+        const craftGeo = new THREE.OctahedronGeometry(0.8, 0);
+        const craftMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa, wireframe: true });
+        const craftNode = new THREE.Mesh(craftGeo, craftMat);
+        craftNode.position.set(0, 1.2, 0);
+        sceneGrid.add(craftNode);
+
+        // Anti-Gravity Repulsive Vector Field Ring
+        const ringGeo = new THREE.RingGeometry(1.5, 1.65, 32);
+        ringGeo.rotateX(-Math.PI / 2);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+        const antiGravRing = new THREE.Mesh(ringGeo, ringMat);
+        antiGravRing.position.set(0, 0.1, 0);
+        sceneGrid.add(antiGravRing);
+
+        // Original Vertices Backup for Physics Wave Distortion Calculation
+        const originalPositions = gridGeometry.attributes.position.clone();
+
+        // Animation Loop for Spacetime Grid Viewport
+        function animateGrid() {
+            requestAnimationFrame(animateGrid);
+            
+            const time = Date.now() * 0.003;
+            const positions = gridGeometry.attributes.position;
+
+            // Apply Anti-Gravity Field Vector Physics Deformation
+            for (let i = 0; i < positions.count; i++) {
+                const x = originalPositions.getX(i);
+                const z = originalPositions.getZ(i);
+                const distFromCenter = Math.sqrt(x * x + z * z);
+
+                // Wave noise (Turbulence distortion)
+                let y = 0;
+                if (turbulenceNoise > 0) {
+                    y += Math.sin(x * 0.8 + time) * Math.cos(z * 0.8 + time) * turbulenceNoise;
+                }
+
+                // Anti-Gravity Repulsive Field Cushion Effect
+                if (isAntiGravActive && distFromCenter < 6) {
+                    const repulsion = Math.cos((distFromCenter / 6) * Math.PI * 0.5) * parseFloat(slideAntiGrav.value) * 1.5;
+                    y -= repulsion; // Gravimetric Repulsive Well Depression
+                }
+
+                positions.setY(i, y);
+            }
+            gridGeometry.attributes.position.needsUpdate = true;
+
+            // Spacecraft rotation & bobbing
+            craftNode.rotation.y += 0.015;
+            antiGravRing.rotation.z += 0.01;
+            
+            // Render 3D Scene
+            rendererGrid.render(sceneGrid, cameraGrid);
+        }
+        animateGrid();
+
+        // Responsive Resizing for Both 3D Canvases
+        window.addEventListener('resize', () => {
+            // NN Camera Resize
+            cameraNN.aspect = nnContainer.clientWidth / nnContainer.clientHeight;
+            cameraNN.updateProjectionMatrix();
+            rendererNN.setSize(nnContainer.clientWidth, nnContainer.clientHeight);
+
+            // Grid Camera Resize
+            cameraGrid.aspect = gridContainer.clientWidth / gridContainer.clientHeight;
+            cameraGrid.updateProjectionMatrix();
+            rendererGrid.setSize(gridContainer.clientWidth, gridContainer.clientHeight);
+        });
+
+        // -------------------------------------------------------------
+        // DRL & UI CONTROL FUNCTIONS
+        // -------------------------------------------------------------
+        // Sync Sliders with Display Values
+        function bindSlider(sliderId, textId, decimals = 2) {
+            const slider = document.getElementById(sliderId);
+            const text = document.getElementById(textId);
+            slider.addEventListener('input', () => {
+                text.innerText = parseFloat(slider.value).toFixed(decimals);
+            });
+        }
+        bindSlider('slide-mach', 'val-mach', 2);
+        bindSlider('slide-voltage', 'val-voltage', 2);
+        bindSlider('slide-warp', 'val-warp', 2);
+        bindSlider('slide-antigrav-coeff', 'val-antigrav-coeff', 2);
+        bindSlider('slide-lr', 'val-lr', 4);
+
+        // Log Telemetry Helper
+        function logTelemetry(msg, colorClass = "text-cyber-accent") {
+            const logBox = document.getElementById('telemetry-log');
+            const p = document.createElement('p');
+            p.className = colorClass;
+            p.innerText = `[STEP ${currentStep}] ${msg}`;
+            logBox.appendChild(p);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // Execute DRL Step (Triggers API call logic & updates UI + 3D visuals)
+        function executeDRLStep() {
+            currentStep++;
+            
+            const mach = parseFloat(slideMach.value);
+            const voltage = parseFloat(slideVoltage.value);
+            const warp = parseFloat(slideWarp.value);
+            const antiGravCoeff = parseFloat(slideAntiGrav.value);
+
+            // Fetch live data or compute fallback locally if standalone
+            fetch(`/api/ai-pilot?mach=${mach}&voltage=${voltage}&warp=${warp}&swarm=${isSwarmActive}`)
+                .then(res => res.json())
+                .then(data => {
+                    updateMetricsUI(data);
+                })
+                .catch(() => {
+                    // Fallback Local Physics + Deep Learning Simulation engine
+                    const localLoss = (Math.random() * 0.01 + 0.002).toFixed(4);
+                    const localReward = (90 + Math.random() * 8.5).toFixed(2);
+                    const localData = {
+                        metrics: {
+                            policy_loss: localLoss,
+                            value_loss: (localLoss * 0.45).toFixed(4),
+                            pinn_physics_loss: (voltage > 1750 ? 0.042 : 0.0012),
+                            policy_confidence: (95 + Math.min(4.9, currentStep * 0.1)).toFixed(2),
+                            reward_score: localReward,
+                            buffer_size: Math.min(1000, 480 + currentStep * 5),
+                            breakdown: {
+                                mach_eff: (92 + Math.random() * 5).toFixed(1),
+                                volt_eff: (86 + Math.random() * 8).toFixed(1),
+                                warp_eff: (94 + Math.random() * 4).toFixed(1),
+                                thermal_eff: 98.0
+                            }
+                        }
+                    };
+                    updateMetricsUI(localData);
+                });
+
+            // Trigger Neural Connections Glow Pulsing Animation
+            connections.forEach(c => {
+                c.mat.color.setHex(Math.random() > 0.4 ? 0x00f0ff : 0x7000ff);
+                c.mat.opacity = 0.9;
+                setTimeout(() => {
+                    c.mat.color.setHex(0x162a4a);
+                    c.mat.opacity = 0.45;
+                }, 400);
+            });
+
+            // Decay turbulence gradually
+            if (turbulenceNoise > 0) {
+                turbulenceNoise = Math.max(0, turbulenceNoise - 0.25);
+                if (turbulenceNoise === 0) {
+                    document.getElementById('grid-status-tag').innerText = 'GRID: SMOOTH';
+                    document.getElementById('grid-status-tag').className = 'px-2 py-0.5 rounded bg-cyber-antigrav/20 text-cyber-antigrav border border-cyber-antigrav/30';
+                }
+            }
+
+            logTelemetry(`PPO Step executed. Anti-Grav Coeff: ${antiGravCoeff}. Actor-Critic Weights Synced.`);
+        }
+
+        function updateMetricsUI(data) {
+            const m = data.metrics;
+            document.getElementById('metric-policy-loss').innerText = m.policy_loss;
+            document.getElementById('metric-value-loss').innerText = m.value_loss;
+            document.getElementById('metric-pinn-loss').innerText = m.pinn_physics_loss;
+            document.getElementById('metric-confidence').innerText = m.policy_confidence + '%';
+            document.getElementById('metric-reward').innerText = m.reward_score;
+            document.getElementById('metric-buffer').innerText = `${m.buffer_size} / 1000`;
+
+            // Update Chart 1
+            chartReward.data.labels.shift();
+            chartReward.data.labels.push(`S${currentStep}`);
+            chartReward.data.datasets[0].data.shift();
+            chartReward.data.datasets[0].data.push(m.reward_score);
+            chartReward.data.datasets[1].data.shift();
+            chartReward.data.datasets[1].data.push(m.policy_loss);
+            chartReward.update();
+
+            // Update Chart 2
+            if (m.breakdown) {
+                chartBreakdown.data.datasets[0].data = [
+                    m.breakdown.mach_eff,
+                    m.breakdown.volt_eff,
+                    m.breakdown.warp_eff,
+                    (isAntiGravActive ? 98.5 : 45.0)
+                ];
+                chartBreakdown.update();
+            }
+        }
+
+        // Toggle Auto-Train Loop
+        function toggleAutoTrain() {
+            isAutoTraining = !isAutoTraining;
+            const btnText = document.getElementById('auto-train-text');
+            const btn = document.getElementById('btn-auto-train');
+
+            if (isAutoTraining) {
+                btnText.innerText = 'STOP AUTO-TRAIN';
+                btn.className = 'w-full py-2 rounded-lg bg-cyber-warn/20 border border-cyber-warn text-cyber-warn font-bold transition-all flex items-center justify-center gap-2';
+                autoTrainInterval = setInterval(executeDRLStep, 1000);
+                logTelemetry('Started Automatic DRL Continuous Training Loop.', 'text-cyber-antigrav');
+            } else {
+                btnText.innerText = 'START AUTO-TRAIN';
+                btn.className = 'w-full py-2 rounded-lg bg-cyber-antigrav/20 border border-cyber-antigrav text-cyber-antigrav font-bold transition-all flex items-center justify-center gap-2';
+                clearInterval(autoTrainInterval);
+                logTelemetry('Stopped Automatic Training Loop.', 'text-gray-400');
+            }
+        }
+
+        // Toggle Anti-Gravity Drive State
+        function toggleAntiGravityDrive() {
+            isAntiGravActive = !isAntiGravActive;
+            const pillText = document.getElementById('antigrav-pill-text');
+            const btn = document.getElementById('btn-toggle-antigrav');
+            const panel = document.getElementById('antigrav-container-panel');
+
+            if (isAntiGravActive) {
+                pillText.innerText = 'ANTI-GRAV DRIVE: ACTIVE';
+                btn.className = 'px-3 py-1.5 rounded-lg bg-cyber-antigrav/10 border border-cyber-antigrav/40 text-cyber-antigrav hover:bg-cyber-antigrav/20 transition-all font-mono font-semibold flex items-center gap-2';
+                panel.classList.remove('border-red-500/50');
+                antiGravRing.visible = true;
+                gridMaterial.color.setHex(0x00f0ff);
+                logTelemetry('Anti-Gravity Scalar Drive ENGAGED.', 'text-cyber-antigrav');
+            } else {
+                pillText.innerText = 'ANTI-GRAV DRIVE: DISABLED';
+                btn.className = 'px-3 py-1.5 rounded-lg bg-cyber-warn/10 border border-cyber-warn/40 text-cyber-warn hover:bg-cyber-warn/20 transition-all font-mono font-semibold flex items-center gap-2';
+                antiGravRing.visible = false;
+                gridMaterial.color.setHex(0xff0055);
+                logTelemetry('Anti-Gravity Drive OFFLINE. Spacetime metric unshielded!', 'text-cyber-warn');
+            }
+        }
+
+        // Inject Severe Spacetime Turbulence Wave
+        function injectTurbulence() {
+            turbulenceNoise = 1.4;
+            document.getElementById('grid-status-tag').innerText = 'GRID: SEVERE DISTORTION';
+            document.getElementById('grid-status-tag').className = 'px-2 py-0.5 rounded bg-cyber-warn/20 text-cyber-warn border border-cyber-warn/30 animate-pulse';
+            logTelemetry('CRITICAL: Injected Severe Gravimetric Turbulence Wave!', 'text-cyber-warn font-bold');
+        }
+
+        // Toggle Swarm Fleet Mode
+        function toggleSwarmFleet() {
+            isSwarmActive = !isSwarmActive;
+            logTelemetry(isSwarmActive ? 'Multi-Agent Swarm Formation Activated (N=4 Drones).' : 'Swarm Mode Disengaged.', 'text-cyber-gold');
+        }
+
+        // Emergency HITL Override
+        function triggerHitlEmergency() {
+            if (isAutoTraining) toggleAutoTrain();
+            document.getElementById('flight-mode-badge').innerText = 'HITL OVERRIDE';
+            document.getElementById('flight-mode-badge').className = 'px-2 py-0.5 rounded text-[10px] bg-cyber-warn text-white font-mono animate-bounce';
+            logTelemetry('EMERGENCY: Human-In-The-Loop Override Activated! AI Autopilot Disengaged.', 'text-cyber-warn font-bold');
+        }
+    </script>
+</body>
+</html>
