@@ -1,6 +1,7 @@
-streamlit>=1.30.0
-numpy
-plotly
-pandas
+fastapi
+uvicorn
+pydantic
 sqlalchemy
 psycopg2-binary
+numpy
+pandas
