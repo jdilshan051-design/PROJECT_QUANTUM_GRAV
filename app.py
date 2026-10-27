@@ -61,7 +61,7 @@ engine = get_engine()
 # Initialize Supabase Database Connection if DATABASE_URL is available
 @st.cache_resource
 def get_db_engine():
-    db_url = os.getenv("DATABASE_URL")
+    db_url = st.secrets.get("DATABASE_URL") or os.getenv("DATABASE_URL")
     if not db_url:
         return None
     try:
@@ -130,7 +130,7 @@ telemetry = engine.compute_flight_metrics(
 rel_time = telemetry['Relativistic_Time_Dilation']
 warp_metrics = telemetry['Warp_Metrics']
 cryo_temp_k = round(77.0 + (voltage_input * 0.025) + (warp_density_input * 0.4), 2)
-g_force_cabin = round(max(1.0, 14.0 * (voltage_input * 0.009)), 2)
+g_force_cabin = round(max(1.0, 14.0 - (voltage_input * 0.009)), 2)
 
 # Push telemetry to Supabase DB if connected and fetch recent live logs
 db_logs_html = ""
@@ -139,20 +139,18 @@ if db_engine:
         with db_engine.begin() as conn:
             conn.execute(
                 text("""
-                    INSERT INTO starship_telemetry (cpu_tensor_core, aring_bus_rate, reactor_core_temp, subspace_distortion)
-                    VALUES (:cpu, :bus, :temp, :dist)
+                    INSERT INTO flight_logs (mach_speed, cabin_pressure)
+                    VALUES (:mach, :pressure)
                 """),
                 {
-                    "cpu": float(mach_input * 4.2),
-                    "bus": float(voltage_input * 1.5),
-                    "temp": float(cryo_temp_k),
-                    "dist": float(warp_density_input * 0.001)
+                    "mach": float(mach_input),
+                    "pressure": float(98.9)
                 }
             )
         with db_engine.connect() as conn:
-            recent_rows = conn.execute(text("SELECT timestamp, cpu_tensor_core, reactor_core_temp FROM starship_telemetry ORDER BY timestamp DESC LIMIT 4;")).fetchall()
+            recent_rows = conn.execute(text("SELECT timestamp, mach_speed FROM flight_logs ORDER BY timestamp DESC LIMIT 4;")).fetchall()
             for r in recent_rows:
-                db_logs_html += f"[DB_SYNC] {str(r[0])[11:19]} | CPU: {r[1]:.1f}% | Temp: {r[2]}K<br>"
+                db_logs_html += f"[DB_SYNC] {str(r[0])[11:19]} | Mach: {r[1]:.2f} | Logged<br>"
     except Exception as e:
         db_logs_html = f"[DB_WARN] Sync active error: {str(e)[:35]}<br>"
 
