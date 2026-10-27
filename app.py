@@ -3,6 +3,8 @@ import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
 import datetime
+import os
+from sqlalchemy import create_engine, text
 from core.physics_engine import QuantumGravPhysicsEngine
 
 # Page Layout & Config
@@ -56,8 +58,22 @@ def get_engine():
 
 engine = get_engine()
 
+# Initialize Supabase Database Connection if DATABASE_URL is available
+@st.cache_resource
+def get_db_engine():
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        return None
+    try:
+        return create_engine(db_url)
+    except Exception:
+        return None
+
+db_engine = get_db_engine()
+
 # --- TOP MASTER STATUS STRIP ---
 current_zulu = datetime.datetime.utcnow().strftime("%H:%M:%S Z")
+db_status_text = "● SUPABASE LINK SECURE" if db_engine else "○ OFFLINE SIMULATION MODE"
 st.markdown(f"""
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; font-family: 'Courier New', monospace;">
         <div style="color: #00ff66; font-weight: bold;">Next-Gen Hypersonic Cockpit Dashboard</div>
@@ -65,7 +81,7 @@ st.markdown(f"""
     </div>
     <div class="top-strip">
         <div><span style="background: #110; border: 1px solid #f33; color: #f33; padding: 2px 6px;">SYS ALARM: OFF</span> &nbsp;&nbsp;|&nbsp;&nbsp; ⚠️ FLUX OVERHEAT [OK] &nbsp;|&nbsp; HTSC CRYOGENIC PUMP [ACTIVE] &nbsp;|&nbsp; TAJMAR G-DAMPENER [LOCKED]</div>
-        <div>ZULU TIME: <b>{current_zulu}</b> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: #00ffaa; border: 1px solid #00ffaa; padding: 2px 6px;">● DECK LINK SECURE</span></div>
+        <div>ZULU TIME: <b>{current_zulu}</b> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color: #00ffaa; border: 1px solid #00ffaa; padding: 2px 6px;">{db_status_text}</span></div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -114,7 +130,31 @@ telemetry = engine.compute_flight_metrics(
 rel_time = telemetry['Relativistic_Time_Dilation']
 warp_metrics = telemetry['Warp_Metrics']
 cryo_temp_k = round(77.0 + (voltage_input * 0.025) + (warp_density_input * 0.4), 2)
-g_force_cabin = round(max(1.0, 14.0 - (voltage_input * 0.009)), 2)
+g_force_cabin = round(max(1.0, 14.0 * (voltage_input * 0.009)), 2)
+
+# Push telemetry to Supabase DB if connected and fetch recent live logs
+db_logs_html = ""
+if db_engine:
+    try:
+        with db_engine.begin() as conn:
+            conn.execute(
+                text("""
+                    INSERT INTO starship_telemetry (cpu_tensor_core, aring_bus_rate, reactor_core_temp, subspace_distortion)
+                    VALUES (:cpu, :bus, :temp, :dist)
+                """),
+                {
+                    "cpu": float(mach_input * 4.2),
+                    "bus": float(voltage_input * 1.5),
+                    "temp": float(cryo_temp_k),
+                    "dist": float(warp_density_input * 0.001)
+                }
+            )
+        with db_engine.connect() as conn:
+            recent_rows = conn.execute(text("SELECT timestamp, cpu_tensor_core, reactor_core_temp FROM starship_telemetry ORDER BY timestamp DESC LIMIT 4;")).fetchall()
+            for r in recent_rows:
+                db_logs_html += f"[DB_SYNC] {str(r[0])[11:19]} | CPU: {r[1]:.1f}% | Temp: {r[2]}K<br>"
+    except Exception as e:
+        db_logs_html = f"[DB_WARN] Sync active error: {str(e)[:35]}<br>"
 
 with col_mfd:
     # Top Row Metrics & Analog Needle Gauges
@@ -248,19 +288,22 @@ with col_mfd:
         st.plotly_chart(fig_3d, use_container_width=True)
 
     with mfd_l:
+        log_content = f"""
+            [SYS] CRT High-Precision avionics link active.<br>
+            [AI_PILOT] Sensor fusion matrix verified.<br>
+            [WARP] T00 tensor responsive to fine throttle.<br>
+            [TELEMETRY] Mach {mach_input:.2f} | Voltage {voltage_input}MV | T00 Stable.<br>
+            {db_logs_html}
+            [STATUS] All cockpit MFD channels operational.
+        """
         st.markdown(f"""
             <div class="crt-panel">
                 <div style="display:flex; justify-content:space-between; font-size:10px; color:#00ff66; border-bottom:1px solid #00aa44; padding-bottom:3px; margin-bottom:5px;">
-                    <span>🟢 MFD-5: AVIONICS LOG</span>
+                    <span>🟢 MFD-5: AVIONICS LOG & SUPABASE</span>
                     <span style="font-size:9px;">SECURE</span>
                 </div>
                 <div style="background: #010803; color: #00ff66; padding: 6px; border-radius: 2px; font-size: 10px; height: 115px; overflow-y: auto; line-height: 1.3;">
-                    [SYS] CRT High-Precision avionics link active.<br>
-                    [AI_PILOT] Sensor fusion matrix verified.<br>
-                    [WARP] T00 tensor responsive to fine throttle.<br>
-                    [13:37:48] [TELEMETRY] Mach 11.5 | Voltage 850MV | T00 Stable.<br>
-                    [13:37:56] [TELEMETRY] Mach 11.5 | Voltage 850MV | T00 Stable.<br>
-                    [STATUS] All cockpit MFD channels operational.
+                    {log_content}
                 </div>
             </div>
         """, unsafe_allow_html=True)
