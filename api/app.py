@@ -5,6 +5,7 @@ import os
 import logging
 from typing import Optional, Dict, Any
 from sqlalchemy import create_engine, text
+import uvicorn
 
 # Import all core engines from the core directory
 from core.physics_engine import QuantumGravPhysicsEngine
@@ -23,10 +24,10 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Enable CORS for frontend integration (GitHub Pages, etc.)
+# Enable CORS for frontend integration (Vercel, GitHub Pages, etc.)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with your exact GitHub Pages URL
+    allow_origins=["*"],  # Allows requests from all origins (Vercel frontend)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -122,7 +123,7 @@ def get_telemetry_history(limit: int = 10):
         raise HTTPException(status_code=503, detail="Database connection not available.")
     try:
         with db_engine.connect() as conn:
-            result = conn.connect().execute(  # type: ignore
+            result = conn.execute(  # type: ignore
                 text("SELECT * FROM flight_logs ORDER BY id DESC LIMIT :limit"),
                 {"limit": limit}
             )
@@ -134,7 +135,7 @@ def get_telemetry_history(limit: int = 10):
 @app.get("/", summary="System Root Health Check")
 def root():
     return {
-        "system": "Quantum-Grav Enterprise Flight Deck",
+        "system": "Quantum-Cloud Enterprise Flight Deck",
         "status": "ONLINE",
         "engines_loaded": [
             "physics_engine", 
@@ -145,3 +146,7 @@ def root():
         ],
         "database_connected": db_engine is not None
     }
+
+# Hugging Face Spaces Entry Point Execution Block
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=7860)
