@@ -1,1 +1,846 @@
-<meta http-equiv="refresh" content="0; url=portal.html">
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT QUANTUM-GRAV // Command Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        quantum: {
+                            900: '#030712',
+                            800: '#0b0f19',
+                            700: '#111827',
+                            600: '#1f2937',
+                            500: '#374151',
+                            accent: '#00f0ff',
+                            glow: '#3b82f6',
+                            purple: '#8b5cf6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .glow-text {
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+        .glow-box {
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(59, 130, 246, 0.1);
+        }
+        .glow-box-purple {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.25), inset 0 0 15px rgba(139, 92, 246, 0.1);
+        }
+        canvas.bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="bg-quantum-900 text-gray-100 min-h-screen flex flex-col selection:bg-quantum-accent selection:text-quantum-900">
+
+    <!-- Persistent Background Starfield Canvas -->
+    <canvas id="starfield-canvas" class="bg-canvas"></canvas>
+
+    <!-- Notification / Message Box (Custom Alert) -->
+    <div id="modal-box" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden transition-all duration-300">
+        <div class="bg-quantum-800 border border-quantum-accent/40 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl glow-box">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-quantum-accent/10 flex items-center justify-center text-quantum-accent">
+                    <i class="fa-solid fa-satellite text-lg"></i>
+                </div>
+                <div>
+                    <h3 id="modal-title" class="font-bold text-lg text-white">QUANTUM PROTOCOL</h3>
+                    <p class="text-xs text-gray-400 font-mono">SYSTEM NOTIFICATION</p>
+                </div>
+            </div>
+            <p id="modal-message" class="text-gray-300 text-sm mb-6 leading-relaxed">Telemetry transmission verified successfully.</p>
+            <div class="flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-quantum-900 font-semibold text-sm rounded-xl hover:opacity-90 transition-all shadow-lg shadow-cyan-500/20">
+                    ACKNOWLEDGE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOT SEQUENCE OVERLAY (Screen 1) -->
+    <div id="boot-overlay" class="fixed inset-0 z-40 bg-quantum-900 flex flex-col items-center justify-center p-4 transition-opacity duration-1000">
+        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+            <!-- Three.js Container for Holographic Orb -->
+            <div id="orb-container" class="w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] cursor-grab active:cursor-grabbing"></div>
+        </div>
+        
+        <div class="relative z-10 flex flex-col items-center text-center mt-4 pointer-events-auto">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-500/30 text-cyan-400 text-xs font-mono mb-4 tracking-wider">
+                <i class="fa-solid fa-globe animate-spin"></i>
+                <span>SYSTEM BOOT // ORBITAL SEQUENCE</span>
+            </div>
+            
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-wider text-white mb-3 glow-text uppercase">
+                PROJECT QUANTUM-<span class="text-cyan-400">GRAV</span>
+            </h1>
+            
+            <p class="text-xs sm:text-sm text-blue-200/70 font-mono max-w-md mb-8 tracking-wide">
+                INITIALIZING SPACETIME CURVATURE & TELEMETRY MESH...
+            </p>
+            
+            <button onclick="enterCommandPortal()" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-300 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 rounded-xl hover:scale-105 shadow-xl shadow-cyan-500/25 active:scale-95">
+                <span class="absolute inset-0 w-full h-full rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <i class="fa-solid fa-play mr-3 text-sm"></i>
+                <span class="tracking-widest text-sm uppercase">ENTER COMMAND PORTAL</span>
+            </button>
+            
+            <p class="text-xs text-gray-500 font-mono mt-6">
+                Cinematic sequence auto-bypasses in <span id="bypass-timer" class="text-cyan-400 font-bold">30</span>s
+            </p>
+        </div>
+    </div>
+
+    <!-- MAIN COMMAND PORTAL DASHBOARD (Screen 2) -->
+    <div id="main-dashboard" class="opacity-0 pointer-events-none transition-opacity duration-1000 flex flex-col min-h-screen">
+        
+        <!-- Top Navigation Bar -->
+        <header class="sticky top-0 z-30 bg-quantum-900/90 backdrop-blur-md border-b border-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                
+                <!-- Logo & Brand -->
+                <a href="index.html" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-quantum-900 font-black text-xl shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
+                        Q
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg text-white tracking-wider">QUANTUM-<span class="text-cyan-400">GRAV</span></span>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-[10px] text-gray-400 font-mono">NODE ONLINE</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Desktop Nav Links -->
+                <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 text-xs font-mono">
+                    <a href="phase1_cockpit.html" class="px-3 py-2 rounded-lg text-gray-300 hover:text-cyan-400 hover:bg-quantum-800 transition-colors">/COCKPIT</a>
+                    <a href="phase2_ai_deck.html" class="px-3 py-2 rounded-lg text-gray-300 hover:text-cyan-400 hover:bg-quantum-800 transition-colors">/AI-DECK</a>
+                    <a href="phase3_warp_deck.html" class="px-3 py-2 rounded-lg text-gray-300 hover:text-cyan-400 hover:bg-quantum-800 transition-colors">/WARP-DECK</a>
+                    <a href="phase4_fleet_deck.html" class="px-3 py-2 rounded-lg text-gray-300 hover:text-cyan-400 hover:bg-quantum-800 transition-colors">/FLEET-DECK</a>
+                    <a href="phase5_master_command.html" class="px-3 py-2 rounded-lg text-cyan-400 font-semibold bg-blue-950/50 border border-blue-500/30">/PHASE5-DECK</a>
+                    <a href="quantum_grav_master_guidebook.pdf" target="_blank" class="px-3 py-2 rounded-lg text-gray-300 hover:text-cyan-400 hover:bg-quantum-800 transition-colors flex items-center space-x-1.5">
+                        <i class="fa-solid fa-book text-[10px]"></i>
+                        <span>/GUIDEBOOK-PDF</span>
+                    </a>
+                </nav>
+
+                <!-- System Telemetry Widgets & Audio Toggle -->
+                <div class="hidden sm:flex items-center space-x-3">
+                    <!-- UTC Clock -->
+                    <div class="px-3 py-1.5 rounded-xl bg-quantum-800/80 border border-gray-800 flex items-center space-x-2 text-xs font-mono text-gray-300">
+                        <i class="fa-regular fa-clock text-cyan-400"></i>
+                        <span id="utc-clock">--:--:-- UTC</span>
+                    </div>
+
+                    <!-- Jump Status Pill -->
+                    <div class="px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/30 flex items-center space-x-2 text-xs font-mono text-emerald-400">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>JUMP T-00:14:28</span>
+                    </div>
+
+                    <!-- Audio Toggle Button -->
+                    <button onclick="toggleAudio()" id="audio-btn" class="w-10 h-10 rounded-xl bg-quantum-800 border border-gray-800 flex items-center justify-center text-gray-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all" title="Toggle Subspace Ambient Audio">
+                        <i id="audio-icon" class="fa-solid fa-volume-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <button onclick="toggleMobileMenu()" class="lg:hidden w-10 h-10 rounded-xl bg-quantum-800 border border-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition-colors">
+                    <i id="menu-icon" class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Navigation Drawer -->
+            <div id="mobile-drawer" class="lg:hidden hidden bg-quantum-900 border-b border-gray-800 px-4 pt-2 pb-6 space-y-2 font-mono text-sm">
+                <a href="phase1_cockpit.html" class="block px-4 py-2.5 rounded-lg text-gray-300 hover:bg-quantum-800 hover:text-cyan-400">/COCKPIT</a>
+                <a href="phase2_ai_deck.html" class="block px-4 py-2.5 rounded-lg text-gray-300 hover:bg-quantum-800 hover:text-cyan-400">/AI-DECK</a>
+                <a href="phase3_warp_deck.html" class="block px-4 py-2.5 rounded-lg text-gray-300 hover:bg-quantum-800 hover:text-cyan-400">/WARP-DECK</a>
+                <a href="phase4_fleet_deck.html" class="block px-4 py-2.5 rounded-lg text-gray-300 hover:bg-quantum-800 hover:text-cyan-400">/FLEET-DECK</a>
+                <a href="phase5_master_command.html" class="block px-4 py-2.5 rounded-lg text-cyan-400 bg-blue-950/50 border border-blue-500/30 font-semibold">/PHASE5-DECK</a>
+                <a href="quantum_grav_master_guidebook.pdf" target="_blank" class="block px-4 py-2.5 rounded-lg text-gray-300 hover:bg-quantum-800 hover:text-cyan-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-book"></i>
+                    <span>/GUIDEBOOK-PDF</span>
+                </a>
+                <div class="pt-4 border-t border-gray-800 flex items-center justify-between px-2 text-xs">
+                    <span id="mobile-utc-clock" class="text-gray-400">--:--:-- UTC</span>
+                    <button onclick="toggleAudio()" class="px-3 py-1.5 rounded-lg bg-quantum-800 text-cyan-400 border border-gray-700">
+                        <i class="fa-solid fa-volume-high mr-1"></i> Audio
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Wrapper -->
+        <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-12">
+            
+            <!-- Hero / Starship Flight Section -->
+            <section class="space-y-6">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-500/30 text-cyan-400 text-xs font-mono">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <span>OCTOBER 26, 2026 // ORBITAL TEST</span>
+                    </div>
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-quantum-800 border border-gray-700 text-gray-300 text-xs font-mono">
+                        <i class="fa-solid fa-mountain text-cyan-400"></i>
+                        <span>ALTITUDE: 412 KM</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h2 class="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight uppercase">
+                        STARSHIP FLIGHT
+                    </h2>
+                    <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-cyan-400 tracking-tight glow-text uppercase">
+                        PROJECT QUANTUM-GRAV
+                    </h1>
+                </div>
+
+                <p class="text-gray-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                    Initiating high-altitude spacetime curvature tests with advanced DRL AI flight control, zero-latency quantum entanglement mesh telemetry, and master antigravity wormhole manifold jumps.
+                </p>
+
+                <!-- Quick Action Buttons -->
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <a href="phase5_master_command.html" class="inline-flex items-center px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 text-white font-bold text-sm shadow-lg shadow-purple-500/25 hover:scale-105 transition-transform">
+                        <span>EXPLORE PHASE 05 DECK</span>
+                        <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                    </a>
+                    <a href="phase3_warp_deck.html" class="inline-flex items-center px-6 py-3.5 rounded-xl bg-quantum-800 hover:bg-quantum-700 text-gray-200 border border-gray-700 hover:border-cyan-500/50 font-semibold text-sm transition-all">
+                        <i class="fa-solid fa-network-wired mr-2 text-cyan-400"></i>
+                        <span>LAUNCH WARP ENGINE</span>
+                    </a>
+                    <a href="quantum_grav_master_guidebook.pdf" target="_blank" class="inline-flex items-center px-6 py-3.5 rounded-xl bg-quantum-800 hover:bg-quantum-700 text-gray-200 border border-gray-700 hover:border-cyan-500/50 font-semibold text-sm transition-all">
+                        <i class="fa-solid fa-book mr-2 text-cyan-400"></i>
+                        <span>MASTER GUIDEBOOK (PDF)</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Real-Time Telemetry Cards Grid -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Card 1 -->
+                <div class="bg-quantum-800/90 backdrop-blur-md border border-gray-800 rounded-2xl p-5 glow-box relative overflow-hidden group hover:border-cyan-500/50 transition-colors">
+                    <div class="absolute top-0 right-0 p-4 text-cyan-400/20 group-hover:text-cyan-400/40 transition-colors">
+                        <i class="fa-solid fa-microchip text-2xl"></i>
+                    </div>
+                    <div class="text-xs font-mono text-gray-400 mb-2">CPU TENSOR CORE</div>
+                    <div id="telemetry-cpu" class="text-2xl font-black text-white font-mono mb-1">47.4 %</div>
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        <div id="bar-cpu" class="bg-cyan-400 h-full w-[474%] transition-all duration-500"></div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-quantum-800/90 backdrop-blur-md border border-gray-800 rounded-2xl p-5 glow-box relative overflow-hidden group hover:border-cyan-500/50 transition-colors">
+                    <div class="absolute top-0 right-0 p-4 text-cyan-400/20 group-hover:text-cyan-400/40 transition-colors">
+                        <i class="fa-solid fa-network-wired text-2xl"></i>
+                    </div>
+                    <div class="text-xs font-mono text-gray-400 mb-2">ARINC BUS RATE</div>
+                    <div id="telemetry-bus" class="text-2xl font-black text-white font-mono mb-1">100 GB/s</div>
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-blue-500 h-full w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-quantum-800/90 backdrop-blur-md border border-gray-800 rounded-2xl p-5 glow-box relative overflow-hidden group hover:border-cyan-500/50 transition-colors">
+                    <div class="absolute top-0 right-0 p-4 text-emerald-400/20 group-hover:text-emerald-400/40 transition-colors">
+                        <i class="fa-solid fa-temperature-three-quarters text-2xl"></i>
+                    </div>
+                    <div class="text-xs font-mono text-gray-400 mb-2">REACTOR CORE TEMP</div>
+                    <div id="telemetry-temp" class="text-2xl font-black text-white font-mono mb-1">1,430 K</div>
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-emerald-400 h-full w-[71.5%]"></div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-quantum-800/90 backdrop-blur-md border border-gray-800 rounded-2xl p-5 glow-box-purple relative overflow-hidden group hover:border-purple-500/50 transition-colors">
+                    <div class="absolute top-0 right-0 p-4 text-purple-400/20 group-hover:text-purple-400/40 transition-colors">
+                        <i class="fa-solid fa-atom text-2xl"></i>
+                    </div>
+                    <div class="text-xs font-mono text-gray-400 mb-2">SUBSPACE DISTORTION</div>
+                    <div id="telemetry-dist" class="text-2xl font-black text-white font-mono mb-1">0.0084 µm</div>
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-purple-500 h-full w-[42%]"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5-Phase Mission Deck Section -->
+            <section class="space-y-6 pt-6">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-mono text-cyan-400 mb-1">FLEET MODULE ARCHITECTURE</div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white uppercase tracking-wide">QUANTUM-GRAV MISSION PHASES</h2>
+                    </div>
+                    <p class="text-xs text-gray-400 max-w-sm font-mono">
+                        Real-time operational modules powering the orbital starship prototype. Click any module to navigate directly to its deck.
+                    </p>
+                </div>
+
+                <!-- Mission Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Phase 01 -->
+                    <div class="bg-quantum-800/80 backdrop-blur-md border border-gray-800 rounded-2xl p-6 glow-box flex flex-col justify-between hover:border-cyan-500/40 transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-lg bg-blue-950 text-cyan-400 border border-blue-500/30 text-xs font-mono font-semibold">PHASE 01</span>
+                                <div class="flex items-center space-x-1.5 text-xs text-emerald-400 font-mono">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>ONLINE</span>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2">Master CRT Cockpit</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed mb-6">
+                                Pixel-perfect analog gauge telemetry, live MFD HUD overlay, reactive throttles, vector grid radar, and hypersonic flight dynamics.
+                            </p>
+                        </div>
+                        <div class="space-y-4 pt-4 border-t border-gray-800">
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>GRID REFRESH:</span>
+                                <span class="text-white font-semibold">120 Hz</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>VECTOR SYNC:</span>
+                                <span class="text-emerald-400 font-semibold">STABLE</span>
+                            </div>
+                            <a href="phase1_cockpit.html" class="block w-full py-3 rounded-xl bg-quantum-700 hover:bg-quantum-600 text-cyan-400 font-mono text-xs font-semibold text-center border border-gray-700 hover:border-cyan-500/50 transition-all">
+                                OPEN PHASE 01 &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Phase 02 -->
+                    <div class="bg-quantum-800/80 backdrop-blur-md border border-cyan-500/40 rounded-2xl p-6 glow-box flex flex-col justify-between hover:border-cyan-500 transition-all relative">
+                        <div class="absolute -top-px left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-lg bg-blue-950 text-cyan-400 border border-blue-500/30 text-xs font-mono font-semibold">PHASE 02</span>
+                                <div class="flex items-center space-x-1.5 text-xs text-emerald-400 font-mono">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>ONLINE</span>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2">PyTorch DRL AI Pilot</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed mb-6">
+                                Autonomous PPO AI flight controller featuring Physics-Informed Neural Networks and Transformer Self-Attention micro-corrections.
+                            </p>
+                        </div>
+                        <div class="space-y-4 pt-4 border-t border-gray-800">
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>INFERENCE LATENCY:</span>
+                                <span class="text-white font-semibold">0.42 ms</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>MODEL ACCURACY:</span>
+                                <span class="text-cyan-400 font-semibold">99.98%</span>
+                            </div>
+                            <a href="phase2_ai_deck.html" class="block w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-quantum-900 font-mono text-xs font-bold text-center shadow-md shadow-cyan-500/20 hover:opacity-90 transition-all">
+                                OPEN PHASE 02 &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Phase 03 -->
+                    <div class="bg-quantum-800/80 backdrop-blur-md border border-gray-800 rounded-2xl p-6 glow-box flex flex-col justify-between hover:border-cyan-500/40 transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-lg bg-blue-950 text-cyan-400 border border-blue-500/30 text-xs font-mono font-semibold">PHASE 03</span>
+                                <div class="flex items-center space-x-1.5 text-xs text-amber-400 font-mono">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                                    <span>WARMING UP</span>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2">3D Warp Curvature Engine</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed mb-6">
+                                Real-time Alcubierre FTL warp bubble metrics, spacetime strain tensors, and 3D wireframe grid simulator manipulating local gravity gradient.
+                            </p>
+                        </div>
+                        <div class="space-y-4 pt-4 border-t border-gray-800">
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>WARP FACTOR:</span>
+                                <span class="text-white font-semibold">1.24 WF</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>EXOTIC MATTER:</span>
+                                <span class="text-emerald-400 font-semibold">STABLE</span>
+                            </div>
+                            <a href="phase3_warp_deck.html" class="block w-full py-3 rounded-xl bg-quantum-700 hover:bg-quantum-600 text-cyan-400 font-mono text-xs font-semibold text-center border border-gray-700 hover:border-cyan-500/50 transition-all">
+                                OPEN PHASE 03 &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Phase 04 -->
+                    <div class="bg-quantum-800/80 backdrop-blur-md border border-gray-800 rounded-2xl p-6 glow-box flex flex-col justify-between hover:border-cyan-500/40 transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-lg bg-blue-950 text-cyan-400 border border-blue-500/30 text-xs font-mono font-semibold">PHASE 04</span>
+                                <div class="flex items-center space-x-1.5 text-xs text-emerald-400 font-mono">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>MESH ACTIVE</span>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2">Fleet Swarm & Quantum Nav</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed mb-6">
+                                Multi-vessel Alcubierre mesh synchronization, autonomous pathfinding, 3D fleet topology, and zero-latency quantum entanglement.
+                            </p>
+                        </div>
+                        <div class="space-y-4 pt-4 border-t border-gray-800">
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>ACTIVE NODES:</span>
+                                <span class="text-white font-semibold">1,024 UNITS</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+                                <span>MESH LATENCY:</span>
+                                <span class="text-emerald-400 font-semibold">0.00 ms</span>
+                            </div>
+                            <a href="phase4_fleet_deck.html" class="block w-full py-3 rounded-xl bg-quantum-700 hover:bg-quantum-600 text-cyan-400 font-mono text-xs font-semibold text-center border border-gray-700 hover:border-cyan-500/50 transition-all">
+                                OPEN PHASE 04 &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Phase 05 (Flagship) -->
+                    <div class="bg-quantum-800/90 backdrop-blur-md border border-purple-500/50 rounded-2xl p-6 glow-box-purple flex flex-col justify-between md:col-span-2 hover:border-purple-500 transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 px-4 py-1 bg-purple-600 text-white text-[10px] font-mono font-bold rounded-bl-xl">FLAGSHIP DECK</div>
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-lg bg-purple-950 text-purple-300 border border-purple-500/30 text-xs font-mono font-semibold">PHASE 05 - FLAGSHIP</span>
+                                <div class="flex items-center space-x-1.5 text-xs text-purple-300 font-mono">
+                                    <span class="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+                                    <span>PRIME CORE READY</span>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-white mb-2">Master Antigravity & Wormhole Deck</h3>
+                            <p class="text-xs sm:text-sm text-gray-300 leading-relaxed mb-6 max-w-2xl">
+                                Exergic field mechanics, collective shield ring, subspace wormhole jump calculator, and Jarvis voice AI command integration for interstellar displacement.
+                            </p>
+                        </div>
+                        <div class="space-y-4 pt-4 border-t border-gray-800">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+                                <div>
+                                    <span class="text-gray-400 block mb-1">GRAV-FIELD:</span>
+                                    <span class="text-purple-300 font-bold">9.81 m/s² (REGULATED)</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400 block mb-1">SINGULARITY:</span>
+                                    <span class="text-cyan-400 font-bold">STABLE CAPTURE</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400 block mb-1">APERTURE DIA:</span>
+                                    <span class="text-cyan-400 font-bold">14.2 METERS</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400 block mb-1">JUMP RANGE:</span>
+                                    <span class="text-emerald-400 font-bold">4.2 LIGHT YEARS</span>
+                                </div>
+                            </div>
+                            <a href="phase5_master_command.html" class="block w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 text-white font-mono text-xs font-bold text-center shadow-lg shadow-purple-500/30 hover:opacity-95 transition-all">
+                                OPEN PHASE 05 DECK &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Professional Sri Lankan Footer -->
+        <footer class="bg-quantum-900 border-t border-gray-800 mt-20 pt-10 pb-12 text-xs text-gray-400 font-mono">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center justify-between">
+                    
+                    <!-- Brand Bio -->
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-2 text-white font-bold text-sm tracking-wide">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                            <span>PROJECT QUANTUM-GRAV</span>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            A next-generation aerospace research & engineering platform pushing the frontiers of antigravity propulsion, physics-informed AI trajectory control, and interstellar quantum communications.
+                        </p>
+                    </div>
+
+                    <!-- Janith Dilshan Verified Profile Card -->
+                    <div class="bg-quantum-800/90 border border-gray-800 rounded-xl p-4 flex items-center space-x-4 glow-box">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-quantum-900 font-bold text-lg shadow-md">
+                            JD
+                        </div>
+                        <div>
+                            <div class="text-white font-bold text-sm">Janith Dilshan</div>
+                            <div class="text-[11px] text-gray-400 mb-1">Lead Aerospace Systems Architect</div>
+                            <a href="https://www.linkedin.com/in/janith-dilshan-a4a75241b" target="_blank" class="inline-flex items-center text-xs text-cyan-400 hover:underline">
+                                <i class="fa-brands fa-linkedin mr-1.5 text-sm"></i>
+                                <span>Connect on LinkedIn</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Powered by Sri Lanka Badge -->
+                    <div class="bg-quantum-800/90 border border-emerald-500/30 rounded-xl p-4 flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-950 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-mono font-black text-sm">
+                            LK
+                        </div>
+                        <div>
+                            <div class="text-emerald-400 font-bold text-xs tracking-wider">POWERED BY SRI LANKA 🇱🇰</div>
+                            <div class="text-[11px] text-gray-400">Engineered with national pride for global & interstellar aerospace innovation.</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="border-t border-gray-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between text-gray-500 text-[11px] gap-4">
+                    <div>
+                        QUANTUM-GRAV &copy; 2026 &bull; DESIGNED BY JANITH DILSHAN
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <span>SYSTEM ID: QG-8819-A</span>
+                        <span>LOCATION: Point Pedro Launch Pad</span>
+                        <div class="flex items-center space-x-1.5 text-emerald-400">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        /* Global State */
+        let portalActive = false;
+        let bypassTimerVal = 30;
+        let bypassInterval = null;
+        let audioPlaying = false;
+        let audioCtx = null;
+        let oscNode = null;
+        let gainNode = null;
+
+        /* Custom Modal Handler */
+        function showModal(title, msg) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('modal-box').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('modal-box').classList.add('hidden');
+        }
+
+        /* Mobile Hamburger Menu Toggle */
+        function toggleMobileMenu() {
+            const drawer = document.getElementById('mobile-drawer');
+            const icon = document.getElementById('menu-icon');
+            drawer.classList.toggle('hidden');
+            if (drawer.classList.contains('hidden')) {
+                icon.className = 'fa-solid fa-bars text-lg';
+            } else {
+                icon.className = 'fa-solid fa-xmark text-lg';
+            }
+        }
+
+        /* Enter Command Portal Transition */
+        function enterCommandPortal() {
+            if (portalActive) return;
+            portalActive = true;
+            if (bypassInterval) clearInterval(bypassInterval);
+
+            const bootOverlay = document.getElementById('boot-overlay');
+            const dashboard = document.getElementById('main-dashboard');
+
+            bootOverlay.style.opacity = '0';
+            setTimeout(() => {
+                bootOverlay.style.display = 'none';
+                dashboard.classList.remove('opacity-0', 'pointer-events-none');
+                startTelemetrySimulation();
+            }, 1000);
+        }
+
+        /* 30-Second Auto-Bypass Ticker */
+        bypassInterval = setInterval(() => {
+            bypassTimerVal--;
+            const timerEl = document.getElementById('bypass-timer');
+            if (timerEl) timerEl.innerText = bypassTimerVal;
+            if (bypassTimerVal <= 0 && !portalActive) {
+                clearInterval(bypassInterval);
+                enterCommandPortal();
+            }
+        }, 1000);
+
+        /* UTC Clock Update */
+        function updateUTCClock() {
+            const now = new Date();
+            const utcString = now.toUTCString().split(' ')[4] + ' UTC';
+            const clockEl = document.getElementById('utc-clock');
+            const mobileClockEl = document.getElementById('mobile-utc-clock');
+            if (clockEl) clockEl.innerText = utcString;
+            if (mobileClockEl) mobileClockEl.innerText = utcString;
+        }
+        setInterval(updateUTCClock, 1000);
+        updateUTCClock();
+
+        /* Real-Time Telemetry Fluctuations */
+        function startTelemetrySimulation() {
+            setInterval(() => {
+                // CPU Tensor Core fluctuation
+                const cpuVal = (45 + Math.random() * 6).toFixed(1);
+                const cpuEl = document.getElementById('telemetry-cpu');
+                const barCpu = document.getElementById('bar-cpu');
+                if (cpuEl) cpuEl.innerText = cpuVal + ' %';
+                if (barCpu) barCpu.style.width = (cpuVal * 4.74) + '%';
+
+                // Reactor Temp fluctuation
+                const tempVal = Math.floor(1420 + Math.random() * 25);
+                const tempEl = document.getElementById('telemetry-temp');
+                if (tempEl) tempEl.innerText = tempVal.toLocaleString() + ' K';
+
+                // Subspace Distortion fluctuation
+                const distVal = (0.0080 + Math.random() * 0.0010).toFixed(4);
+                const distEl = document.getElementById('telemetry-dist');
+                if (distEl) distEl.innerText = distVal + ' µm';
+            }, 2000);
+        }
+
+        /* Subspace Ambient Audio Toggle */
+        function toggleAudio() {
+            const icon = document.getElementById('audio-icon');
+            if (!audioPlaying) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    oscNode = audioCtx.createOscillator();
+                    gainNode = audioCtx.createGain();
+
+                    oscNode.type = 'sine';
+                    oscNode.frequency.setValueAtTime(55, audioCtx.currentTime); // Low sub drone A1
+
+                    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+                    oscNode.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscNode.start();
+
+                    audioPlaying = true;
+                    icon.className = 'fa-solid fa-volume-high text-cyan-400';
+                    showModal('AUDIO MESH ACTIVE', 'Subspace sub-harmonic audio drone initialized successfully.');
+                } catch (e) {
+                    showModal('AUDIO ERROR', 'Browser audio policy restricted automatic oscillator start.');
+                }
+            } else {
+                if (oscNode) {
+                    oscNode.stop();
+                    oscNode.disconnect();
+                }
+                if (audioCtx) audioCtx.close();
+                audioPlaying = false;
+                icon.className = 'fa-solid fa-volume-xmark';
+                showModal('AUDIO MESH MUTED', 'Subspace audio drone halted.');
+            }
+        }
+
+        /* Three.js 3D Holographic Plasma Orb & Persistent Starfield */
+        window.addEventListener('load', () => {
+            // --- 1. Persistent Starfield Canvas ---
+            const starCanvas = document.getElementById('starfield-canvas');
+            const starCtx = starCanvas.getContext('2d');
+            let stars = [];
+
+            function resizeStarCanvas() {
+                starCanvas.width = window.innerWidth;
+                starCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeStarCanvas);
+            resizeStarCanvas();
+
+            for (let i = 0; i < 350; i++) {
+                stars.push({
+                    x: Math.random() * starCanvas.width,
+                    y: Math.random() * starCanvas.height,
+                    size: Math.random() * 1.5,
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.2 + 0.05
+                });
+            }
+
+            function animateStarfield() {
+                starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+                starCtx.fillStyle = '#030712';
+                starCtx.fillRect(0, 0, starCanvas.width, starCanvas.height);
+
+                starCtx.fillStyle = '#ffffff';
+                stars.forEach(star => {
+                    star.alpha += (Math.random() - 0.5) * 0.05;
+                    if (star.alpha < 0.1) star.alpha = 0.1;
+                    if (star.alpha > 1) star.alpha = 1;
+
+                    starCtx.globalAlpha = star.alpha;
+                    starCtx.fillRect(star.x, star.y, star.size, star.size);
+
+                    star.y -= star.speed;
+                    if (star.y < 0) star.y = starCanvas.height;
+                });
+                starCtx.globalAlpha = 1;
+                requestAnimationFrame(animateStarfield);
+            }
+            animateStarfield();
+
+            // --- 2. Three.js Holographic Plasma Orb ---
+            const container = document.getElementById('orb-container');
+            if (!container) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 4.5;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Create Wireframe Icosahedron Plasma Core
+            const geometry = new THREE.IcosahedronGeometry(1.8, 3);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00f0ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.35
+            });
+            const plasmaOrb = new THREE.Mesh(geometry, material);
+            scene.add(plasmaOrb);
+
+            // Create Inner Glowing Core Sphere
+            const innerGeo = new THREE.SphereGeometry(1.2, 32, 32);
+            const innerMat = new THREE.MeshBasicMaterial({
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.2
+            });
+            const innerCore = new THREE.Mesh(innerGeo, innerMat);
+            scene.add(innerCore);
+
+            // Create Outer Particle Ring
+            const particleCount = 400;
+            const particleGeo = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                const radius = 2.2 + Math.random() * 0.8;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = (Math.random() - 0.5) * Math.PI;
+
+                particlePositions[i] = radius * Math.cos(phi) * Math.cos(theta);
+                particlePositions[i + 1] = radius * Math.sin(phi);
+                particlePositions[i + 2] = radius * Math.cos(phi) * Math.sin(theta);
+            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            
+            const particleMat = new THREE.PointsMaterial({
+                color: 0x00f0ff,
+                size: 0.035,
+                transparent: true,
+                opacity: 0.6
+            });
+            const particleRing = new THREE.Points(particleGeo, particleMat);
+            scene.add(particleRing);
+
+            // Mouse / Touch Parallax Interaction
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetRotationX = 0;
+            let targetRotationY = 0;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+                mouseY = (event.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+            });
+
+            document.addEventListener('touchmove', (event) => {
+                if (event.touches.length > 0) {
+                    mouseX = (event.touches[0].clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+                    mouseY = (event.touches[0].clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+                }
+            }, { passive: true });
+
+            // Animation Loop
+            function animateOrb() {
+                requestAnimationFrame(animateOrb);
+
+                targetRotationX = mouseY * 0.5;
+                targetRotationY = mouseX * 0.5;
+
+                plasmaOrb.rotation.x += 0.003 + (targetRotationX - plasmaOrb.rotation.x) * 0.05;
+                plasmaOrb.rotation.y += 0.005 + (targetRotationY - plasmaOrb.rotation.y) * 0.05;
+
+                innerCore.rotation.x -= 0.004;
+                innerCore.rotation.y -= 0.006;
+
+                particleRing.rotation.y -= 0.002;
+                particleRing.rotation.z += 0.001;
+
+                renderer.render(scene, camera);
+            }
+            animateOrb();
+
+            window.addEventListener('resize', () => {
+                if (!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        });
+    </script>
+</body>
+</html>
