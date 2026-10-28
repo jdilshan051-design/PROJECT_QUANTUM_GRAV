@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <script src="./api-config.js"></script>
@@ -76,7 +76,7 @@
             <!-- BLACK HOLE SINGULARITY BUTTON -->
             <button onclick="enterBlackHoleSingularity()" class="relative group overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono font-black text-xs px-6 py-3 rounded-xl tracking-wider transition-all transform hover:scale-105 glow-btn flex items-center space-x-3 border border-cyan-300/40">
                 <i class="fa-solid fa-circle-dot animate-spin text-cyan-200" style="animation-duration: 4s;"></i>
-                <span class="tracking-widest">ðŸ•³ï¸ ENTER BLACK HOLE SINGULARITY</span>
+                <span class="tracking-widest">🕳️ ENTER BLACK HOLE SINGULARITY</span>
                 <span class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
             </button>
 
@@ -84,6 +84,7 @@
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <span>PURGE</span>
             </button>
+            <a href="index.html" class="bg-blue-950/60 hover:bg-blue-900 border border-cyan-500/60 text-cyan-300 px-4 py-3 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center space-x-2"><i class="fa-solid fa-house"></i><span>PORTAL HUB</span></a>
         </div>
     </header>
 
@@ -233,7 +234,7 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center mt-3 text-xs font-mono">
-                    <span class="text-gray-400">CORE TEMP: <strong id="val-core-temp" class="text-cyber-cyan">38.4Â°C</strong></span>
+                    <span class="text-gray-400">CORE TEMP: <strong id="val-core-temp" class="text-cyber-cyan">38.4°C</strong></span>
                     <span class="text-gray-400">RADIATION: <strong id="val-radiation" class="text-cyber-success">0.02 mSv</strong></span>
                 </div>
             </div>
@@ -301,7 +302,7 @@
                 ACCRETION DISK APPROACH
             </h2>
             <p id="singularity-phase-sub" class="text-xs md:text-sm font-mono text-cyan-200 tracking-widest mt-2 uppercase">
-                BENDING SPACETIME LIGHT RAYS â€¢ CROSSING EVENT HORIZON BOUNDARY
+                BENDING SPACETIME LIGHT RAYS • CROSSING EVENT HORIZON BOUNDARY
             </p>
         </div>
 
@@ -411,7 +412,7 @@
                 if (state.inSingularityMode) {
                     singPhase = 1;
                     document.getElementById('singularity-phase-title').textContent = "EVENT HORIZON PLUNGE";
-                    document.getElementById('singularity-phase-sub').textContent = "PHOTON SPHERE DISTORTION â€¢ TIME DILATION DIVERGENCE";
+                    document.getElementById('singularity-phase-sub').textContent = "PHOTON SPHERE DISTORTION • TIME DILATION DIVERGENCE";
                 }
             }, 3500);
 
@@ -419,7 +420,7 @@
                 if (state.inSingularityMode) {
                     singPhase = 2;
                     document.getElementById('singularity-phase-title').textContent = "WORMHOLE MANIFOLD TRANSIT";
-                    document.getElementById('singularity-phase-sub').textContent = "QUANTUM FLUX HYPERSPACE TUNNEL â€¢ DISPATCHING TO SUBSPACE";
+                    document.getElementById('singularity-phase-sub').textContent = "QUANTUM FLUX HYPERSPACE TUNNEL • DISPATCHING TO SUBSPACE";
                 }
             }, 7000);
         }
@@ -759,7 +760,7 @@
             const temp = 35 + (state.agVoltage * 0.6) + (state.warpFactor * 1.5);
             const radiation = 0.01 + (state.agVoltage * 0.003);
 
-            document.getElementById('val-core-temp').textContent = temp.toFixed(1) + 'Â°C';
+            document.getElementById('val-core-temp').textContent = temp.toFixed(1) + '°C';
             document.getElementById('val-radiation').textContent = radiation.toFixed(3) + ' mSv';
 
             const badge = document.getElementById('thermal-status-badge');
@@ -873,3 +874,4 @@
 
 </body>
 </html>
+
