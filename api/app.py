@@ -26,7 +26,9 @@ def normalize_database_url():
     if url and "sslmode=" not in url: url += "&sslmode=require" if "?" in url else "?sslmode=require"
     return url
 
-_db_url = normalize_database_url()
+# Database persistence is opt-in. A stale DATABASE_URL must not prevent API startup.
+database_enabled = os.getenv("ENABLE_DATABASE", "false").strip().lower() in {"1", "true", "yes"}
+_db_url = normalize_database_url() if database_enabled else ""
 db_engine = create_engine(_db_url, pool_pre_ping=True, pool_recycle=300) if _db_url else None
 
 @app.on_event("startup")
@@ -61,7 +63,7 @@ def root(): return {"system":"Project Quantum-Grav API", "status":"ONLINE", "dat
 @app.get("/health")
 def health():
     if not db_engine:
-        raise HTTPException(503, "DATABASE_URL is not configured")
+        return {"status": "ok", "database_connected": False}
     try:
         with db_engine.connect() as conn:
             conn.execute(text("SELECT 1"))
