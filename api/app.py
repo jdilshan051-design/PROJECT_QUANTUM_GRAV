@@ -14,16 +14,30 @@ from core.swarm_mesh_engine import SwarmMeshEngine
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("QuantumGravBackend")
 app = FastAPI(title="Project Quantum-Grav API", version="2.1.0")
+
 origins = [x.strip() for x in os.getenv("FRONTEND_ORIGINS", "*").split(",") if x.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET", "POST", "OPTIONS"], allow_headers=["*"])
-physics_engine, warp_engine = QuantumGravPhysicsEngine(), WarpCurvatureEngine()
-phase5_engine, drl_ai, swarm_engine = Phase5MasterEngine(), AdvancedDeepLearningPilot(), SwarmMeshEngine()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+physics_engine = QuantumGravPhysicsEngine()
+warp_engine = WarpCurvatureEngine()
+phase5_engine = Phase5MasterEngine()
+drl_ai = AdvancedDeepLearningPilot()
+swarm_engine = SwarmMeshEngine()
 
 def normalize_database_url():
     url = os.getenv("DATABASE_URL", "").strip()
-    if url.startswith("postgres://"): url = "postgresql+psycopg2://" + url[11:]
-    elif url.startswith("postgresql://"): url = "postgresql+psycopg2://" + url[13:]
-    if url and "sslmode=" not in url: url += "&sslmode=require" if "?" in url else "?sslmode=require"
+    if url.startswith("postgres://"):
+        url = "postgresql+psycopg2://" + url[11:]
+    elif url.startswith("postgresql://"):
+        url = "postgresql+psycopg2://" + url[13:]
+    if url and "sslmode=" not in url:
+        url += "&sslmode=require" if "?" in url else "?sslmode=require"
     return url
 
 # Database persistence: automatically active if DATABASE_URL is set, unless explicitly disabled
@@ -50,7 +64,7 @@ class FlightControlInput(BaseModel):
     quantum_entanglement_factor: Optional[float] = 1.0
     active_swarm_nodes: Optional[int] = Field(12, ge=1, le=500)
 
-def evaluate(data):
+def evaluate(data: FlightControlInput):
     vals = data.model_dump() if hasattr(data, "model_dump") else data.dict()
     payload = {
         "physics": physics_engine.compute_flight_metrics(data.mach_speed, data.field_voltage_mv, data.warp_bubble_density),
@@ -62,15 +76,21 @@ def evaluate(data):
     if db_engine:
         try:
             with db_engine.begin() as conn:
-                conn.execute(text("INSERT INTO flight_logs (mach_speed, field_voltage, warp_density, telemetry_payload) VALUES (:mach, :voltage, :warp, CAST(:payload AS JSONB))"), {"mach": vals["mach_speed"], "voltage": vals["field_voltage_mv"], "warp": vals["warp_bubble_density"], "payload": json.dumps(payload)})
+                conn.execute(
+                    text("INSERT INTO flight_logs (mach_speed, field_voltage, warp_density, telemetry_payload) VALUES (:mach, :voltage, :warp, CAST(:payload AS JSONB))"),
+                    {"mach": vals["mach_speed"], "voltage": vals["field_voltage_mv"], "warp": vals["warp_bubble_density"], "payload": json.dumps(payload)}
+                )
         except Exception as exc:
             logger.warning(f"Failed to record flight log: {exc}")
     return payload
 
 @app.get("/")
-def root(): return {"system":"Project Quantum-Grav API", "status":"ONLINE", "database_connected":db_engine is not None}
+@app.get("/api")
+def root():
+    return {"system": "Project Quantum-Grav API", "status": "ONLINE", "database_connected": db_engine is not None}
 
 @app.get("/health")
+@app.get("/api/health")
 def health():
     if not db_engine:
         return {"status": "ok", "database_connected": False}
@@ -82,29 +102,37 @@ def health():
         return {"status": "degraded", "database_connected": False, "error": str(exc)}
 
 @app.post("/calculate")
+@app.post("/api/calculate")
 def calculate(data: FlightControlInput):
-    try: return {"status":"SUCCESS", "data":evaluate(data)}
+    try:
+        return {"status": "SUCCESS", "data": evaluate(data)}
     except Exception as exc:
         logger.exception("Calculation pipeline failed")
         raise HTTPException(500, "Calculation failed") from exc
 
+@app.get("/warp-calculate")
 @app.get("/api/warp-calculate")
-def warp_calculate(warp:float=7, voltage:float=1200, ai_active:bool=False, shockwave:bool=False, antigravity:bool=False):
+def warp_calculate(warp: float = 7, voltage: float = 1200, ai_active: bool = False, shockwave: bool = False, antigravity: bool = False):
     return warp_engine.calculate_warp_field(warp, voltage, ai_active, shockwave, antigravity)
 
+@app.get("/swarm-calculate")
 @app.get("/api/swarm-calculate")
-def swarm_calculate(fleet_size:int=Query(5,ge=1,le=100), sync_phase:float=0, warp:float=7, qenap:bool=True, formation:str="SPHERE", cooling:bool=False, antigravity:bool=True):
+def swarm_calculate(fleet_size: int = Query(5, ge=1, le=100), sync_phase: float = 0, warp: float = 7, qenap: bool = True, formation: str = "SPHERE", cooling: bool = False, antigravity: bool = True):
     return swarm_engine.compute_fleet_swarm(fleet_size, sync_phase, warp, qenap, formation, cooling, antigravity)
 
+@app.get("/ai-pilot")
 @app.get("/api/ai-pilot")
-def ai_pilot(mach:float=13.6, voltage:float=1200, warp:float=7, swarm:bool=False):
+def ai_pilot(mach: float = 13.6, voltage: float = 1200, warp: float = 7, swarm: bool = False):
     return drl_ai.compute_deep_learning_step(mach, voltage, warp, swarm)
 
 @app.get("/telemetry/history")
-def history(limit:int=Query(10,ge=1,le=100)):
-    if not db_engine: raise HTTPException(503,"DATABASE_URL is not configured")
+@app.get("/api/telemetry/history")
+def history(limit: int = Query(10, ge=1, le=100)):
+    if not db_engine:
+        raise HTTPException(503, "DATABASE_URL is not configured")
     try:
         with db_engine.connect() as conn:
-            rows=conn.execute(text("SELECT * FROM flight_logs ORDER BY id DESC LIMIT :limit"), {"limit":limit})
-            return {"status":"SUCCESS", "logs":[dict(row._mapping) for row in rows]}
-    except Exception as exc: raise HTTPException(500,"Could not read telemetry history") from exc
+            rows = conn.execute(text("SELECT * FROM flight_logs ORDER BY id DESC LIMIT :limit"), {"limit": limit})
+            return {"status": "SUCCESS", "logs": [dict(row._mapping) for row in rows]}
+    except Exception as exc:
+        raise HTTPException(500, "Could not read telemetry history") from exc
