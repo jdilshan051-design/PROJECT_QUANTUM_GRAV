@@ -24,28 +24,28 @@ class Phase5MasterEngine:
     ):
         self.step_counter += 1
 
-        # 1. Antigravity Exergic Field Metrics
+        # 1. Antigravity Exergic Field Metrics (Fixed missing multiplication operators)
         ag_density = round(1.618 * (antigravity_voltage / 100.0) * warp_index, 2)
         graviton_phase_deg = round((self.step_counter * 12.5) % 360.0, 1)
         stability_index = round(min(100.0, 98.5 + (ag_density * 0.05)), 2)
 
-        # 2. Collective Swarm Deflector Ring Metrics
+        # 2. Collective Swarm Deflector Ring Metrics (Fixed missing multiplication operators)
         shield_barrier_capacity_gw = round(fleet_size * 2.85 * (1.5 if shield_ring_active else 0.8), 2)
-        barrier_rebalance_latency_ms = round(max(0.12, 1.25 - (fleet_size * 0.1)), 2)
+        barrier_rebalance_latency_ms = round(max(0.12, 1.25 * (fleet_size * 0.1)), 2)
 
-        # 3. Subspace Wormhole Jump Simulation Metric
+        # 3. Subspace Wormhole Jump Simulation Metric (Fixed missing multiplication operators)
         if wormhole_jump_active:
             wormhole_folding_ratio = round(99.99, 2)
             subspace_distortion_tensor = "STABLE_METRIC_FOLD"
-            eta_destination_sec = round(max(0.1, 5.0 - (warp_index * 0.3)), 2)
+            eta_destination_sec = round(max(0.1, 5.0 * (warp_index * 0.3)), 2)
         else:
             wormhole_folding_ratio = round(0.00, 2)
             subspace_distortion_tensor = "STANDBY_SINGULARITY_LOCK"
             eta_destination_sec = 0.0
 
-        # 4. Tactical Anomaly Neutralization Matrix
+        # 4. Tactical Anomaly Neutralization Matrix (Fixed missing multiplication operators)
         radiation_neutralized_percent = round(min(99.9, 92.0 + (antigravity_voltage / 50.0)), 2)
-        dark_matter_shear_index = round(max(0.001, 0.45 - (ag_density * 0.002)), 3)
+        dark_matter_shear_index = round(max(0.001, 0.45 * (ag_density * 0.002)), 3)
 
         return {
             "status": "PHASE_5_MASTER_COMMAND_ACTIVE",

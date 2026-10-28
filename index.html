@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
+    <script src="./api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROJECT QUANTUM-GRAV // Command Portal</title>
@@ -306,7 +307,7 @@
                         <i class="fa-solid fa-atom text-2xl"></i>
                     </div>
                     <div class="text-xs font-mono text-gray-400 mb-2">SUBSPACE DISTORTION</div>
-                    <div id="telemetry-dist" class="text-2xl font-black text-white font-mono mb-1">0.0084 µm</div>
+                    <div id="telemetry-dist" class="text-2xl font-black text-white font-mono mb-1">0.0084 Âµm</div>
                     <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-purple-500 h-full w-[42%]"></div>
                     </div>
@@ -469,7 +470,7 @@
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
                                 <div>
                                     <span class="text-gray-400 block mb-1">GRAV-FIELD:</span>
-                                    <span class="text-purple-300 font-bold">9.81 m/s² (REGULATED)</span>
+                                    <span class="text-purple-300 font-bold">9.81 m/sÂ² (REGULATED)</span>
                                 </div>
                                 <div>
                                     <span class="text-gray-400 block mb-1">SINGULARITY:</span>
@@ -534,7 +535,7 @@
                             LK
                         </div>
                         <div>
-                            <div class="text-emerald-400 font-bold text-xs tracking-wider">POWERED BY SRI LANKA 🇱🇰</div>
+                            <div class="text-emerald-400 font-bold text-xs tracking-wider">POWERED BY SRI LANKA ðŸ‡±ðŸ‡°</div>
                             <div class="text-[11px] text-gray-400">Engineered with national pride for global & interstellar aerospace innovation.</div>
                         </div>
                     </div>
@@ -651,7 +652,7 @@
                 // Subspace Distortion fluctuation
                 const distVal = (0.0080 + Math.random() * 0.0010).toFixed(4);
                 const distEl = document.getElementById('telemetry-dist');
-                if (distEl) distEl.innerText = distVal + ' µm';
+                if (distEl) distEl.innerText = distVal + ' Âµm';
             }, 2000);
         }
 

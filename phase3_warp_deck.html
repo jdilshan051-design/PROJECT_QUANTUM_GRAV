@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="./api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROJECT QUANTUM-GRAV | Phase 3 Holographic HUD & Telemetry Deck</title>
@@ -358,7 +359,7 @@
             </div>
             <div class="metric-row">
                 <span class="metric-label">Exotic Energy Density:</span>
-                <span class="metric-val" id="m-energy">1988.70 MJ/m³</span>
+                <span class="metric-val" id="m-energy">1988.70 MJ/mÂ³</span>
             </div>
             <div class="metric-row">
                 <span class="metric-label">GR Time Dilation (GR-TDC):</span>
@@ -543,13 +544,13 @@
             document.getElementById('val-volt').innerText = volt.toFixed(1);
 
             try {
-                const res = await fetch(`/api/warp-calculate?warp=${warp}&voltage=${volt}&ai_active=${aiStabilizerActive}&shockwave=${shockwaveActive}&antigravity=${antigravityActive}`);
+                const res = await fetch(quantumGravApi(`/api/warp-calculate?warp=${warp}&voltage=${volt}&ai_active=${aiStabilizerActive}&shockwave=${shockwaveActive}&antigravity=${antigravityActive}`));
                 const data = await res.json();
 
                 document.getElementById('m-ftl').innerText = data.metrics.ftl_speed_multiplier + 'x c';
                 document.getElementById('m-strain').innerText = data.metrics.spacetime_strain;
                 document.getElementById('m-stability').innerText = data.metrics.bubble_stability_percent + '%';
-                document.getElementById('m-energy').innerText = data.metrics.exotic_energy_required + ' MJ/m³';
+                document.getElementById('m-energy').innerText = data.metrics.exotic_energy_required + ' MJ/mÂ³';
                 document.getElementById('m-timedilation').innerText = data.metrics.time_dilation + ' Yrs/Yr';
                 document.getElementById('m-fft').innerText = data.metrics.resonance_harmonics + ' Hz';
                 document.getElementById('m-mhd').innerText = data.metrics.mhd_shield;
@@ -575,7 +576,7 @@
             data: {
                 labels: ['1s', '2s', '3s', '4s', '5s', '6s', '7s', '8s'],
                 datasets: [{
-                    label: 'Quantum Flux (MJ/m³)',
+                    label: 'Quantum Flux (MJ/mÂ³)',
                     data: [1500, 1650, 1720, 1800, 1900, 1950, 1988, 1988],
                     borderColor: '#38bdf8',
                     backgroundColor: 'rgba(56, 189, 248, 0.12)',

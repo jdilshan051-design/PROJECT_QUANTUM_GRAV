@@ -9,3 +9,8 @@ __pycache__/
 
 # Testing output
 .pytest_cache/
+
+# Local secrets
+.env
+.env.*
+!.env.example

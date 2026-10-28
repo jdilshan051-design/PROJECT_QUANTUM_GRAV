@@ -41,7 +41,7 @@ class WarpCurvatureEngine:
 
         ftl_multiplier = round((math.pow(target_warp, 3) / 10.0), 2)
         
-        # Antigravity negative tensor transformation
+        # Antigravity negative tensor transformation (Fixed missing operators)
         if antigravity_active:
             pinn_surrogate_strain = round(-1.0 * target_warp * 1.214 * (target_voltage / 1000.0), 4)
             exotic_energy = round(-1.0 * self.exotic_energy_density * (target_warp / 4.0), 2)

@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="./api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROJECT QUANTUM-GRAV | Phase 4 Holographic Fleet Command HUD</title>
@@ -188,8 +189,8 @@
 
                         <div>
                             <div class="flex justify-between mb-1">
-                                <span class="text-slate-400">Mesh Sync Phase Angle (°):</span>
-                                <span id="lbl-phase" class="font-bold text-purple-400">90.0°</span>
+                                <span class="text-slate-400">Mesh Sync Phase Angle (Â°):</span>
+                                <span id="lbl-phase" class="font-bold text-purple-400">90.0Â°</span>
                             </div>
                             <input type="range" id="input-phase" min="0" max="360" value="90" step="5" class="w-full" oninput="updateFleetData()">
                         </div>
@@ -299,7 +300,7 @@
                         <div class="space-y-1.5 text-xs">
                             <div class="flex justify-between">
                                 <span class="text-slate-400">Target Bearing / Distance:</span>
-                                <span id="disp1-coords" class="font-bold text-slate-200">142° VECTOR / 1.4 LY</span>
+                                <span id="disp1-coords" class="font-bold text-slate-200">142Â° VECTOR / 1.4 LY</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400">Detected Anomaly Type:</span>
@@ -340,7 +341,7 @@
                             <span class="font-orbitron font-bold text-xs text-amber-400 flex items-center gap-2">
                                 <i class="fa-solid fa-fire-flame-curved"></i> 3. WARP OVERLAP HEATMAP
                             </span>
-                            <span id="disp3-overlap" class="text-[10px] font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/40">13.32 MW/m³</span>
+                            <span id="disp3-overlap" class="text-[10px] font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/40">13.32 MW/mÂ³</span>
                         </div>
                         <div class="space-y-1.5 text-xs">
                             <div class="flex justify-between">
@@ -442,13 +443,13 @@
             state.protocol = selectProtocol.value;
 
             document.getElementById('lbl-fleet').innerText = `${state.fleetSize} Units`;
-            document.getElementById('lbl-phase').innerText = `${state.phaseAngle.toFixed(1)}°`;
+            document.getElementById('lbl-phase').innerText = `${state.phaseAngle.toFixed(1)}Â°`;
             document.getElementById('lbl-warp').innerText = `Warp ${state.warpIndex.toFixed(2)}`;
 
             let telemetryData = null;
 
             try {
-                const response = await fetch(`/api/swarm-calculate?fleet_size=${state.fleetSize}&sync_phase=${state.phaseAngle}&warp=${state.warpIndex}&qenap=${state.protocol !== 'standalone'}&formation=${state.formation}&cooling=${state.emergencyCooling}&antigravity=${state.antigravity}`);
+                const response = await fetch(quantumGravApi(`/api/swarm-calculate?fleet_size=${state.fleetSize}&sync_phase=${state.phaseAngle}&warp=${state.warpIndex}&qenap=${state.protocol !== 'standalone'}&formation=${state.formation}&cooling=${state.emergencyCooling}&antigravity=${state.antigravity}`));
                 if (response.ok) {
                     telemetryData = await response.json();
                 }
@@ -506,14 +507,14 @@
 
             // Display 1: Radar
             document.getElementById('disp1-status').innerText = m.navigation_status.includes("SHIELDED") ? "SECURE" : "SCANNING";
-            document.getElementById('disp1-coords').innerText = `142° VECTOR / ${state.warpIndex > 8 ? "2.8 LY" : "1.4 LY"}`;
+            document.getElementById('disp1-coords').innerText = `142Â° VECTOR / ${state.warpIndex > 8 ? "2.8 LY" : "1.4 LY"}`;
             document.getElementById('disp1-bar').style.width = state.antigravity ? "95%" : "40%";
 
             // Display 2: QETB Subspace
             document.getElementById('disp2-loss').innerText = `${m.packet_loss_percent}%`;
 
             // Display 3: Warp Overlap Heatmap
-            document.getElementById('disp3-overlap').innerText = `${m.bubble_overlap_density_mw} MW/m³`;
+            document.getElementById('disp3-overlap').innerText = `${m.bubble_overlap_density_mw} MW/mÂ³`;
             document.getElementById('disp3-bar').style.width = `${Math.min(100, (m.bubble_overlap_density_mw / 30) * 100)}%`;
 
             // Display 4: Radiation & Life Support

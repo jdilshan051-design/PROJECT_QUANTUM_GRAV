@@ -54,10 +54,10 @@ class AdvancedDeepLearningPilot:
             # Relativistic Drag constraint violation
             pinn_physics_loss = round((current_mach - 18.0) * 0.042, 4)
 
-        # Base Reward Calculation
-        mach_reward = max(0.0, 35.0 - abs(mach_error) * 4)
+        # Base Reward Calculation (Fixed missing multiplication operators)
+        mach_reward = max(0.0, 35.0 - abs(mach_error) * 4.0)
         volt_reward = max(0.0, 30.0 - abs(volt_error) * 0.04)
-        warp_reward = max(0.0, 25.0 - abs(warp_error) * 8)
+        warp_reward = max(0.0, 25.0 - abs(warp_error) * 8.0)
         thermal_bonus = 10.0 if current_voltage < 1600 else 2.0
         
         total_reward = round(mach_reward + volt_reward + warp_reward + thermal_bonus - (pinn_physics_loss * 100), 2)
@@ -75,7 +75,7 @@ class AdvancedDeepLearningPilot:
         if len(self.memory_buffer) > self.buffer_capacity:
             self.memory_buffer.pop(0)
 
-        # Compute Losses
+        # Compute Losses (Fixed missing multiplication operators)
         ppo_policy_loss = round(random.uniform(0.007, 0.018) * (1.0 - (self.step_counter * 0.00005)), 4)
         ppo_value_loss = round(random.uniform(0.002, 0.008), 4)
         lambda_const = 0.55

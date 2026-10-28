@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
+    <script src="./api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROJECT QUANTUM-GRAV - Phase 2 AI Deck & 3D Neural Inspector</title>
@@ -111,7 +112,7 @@
                     PROJECT QUANTUM-GRAV 
                     <span class="text-xs font-mono px-2 py-0.5 rounded bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/30">PHASE 2 DRL DECK</span>
                 </h1>
-                <p class="text-gray-400 text-xs font-mono">PyTorch Actor-Critic PPO • PINN Physics Core • 3D XAI Heatmap & Anti-Gravity Drive</p>
+                <p class="text-gray-400 text-xs font-mono">PyTorch Actor-Critic PPO â€¢ PINN Physics Core â€¢ 3D XAI Heatmap & Anti-Gravity Drive</p>
             </div>
         </div>
 
@@ -366,7 +367,7 @@
                 <div class="absolute top-2 left-2 z-10 pointer-events-none text-[10px] font-mono bg-cyber-bg/80 p-2 rounded border border-cyber-border/50 backdrop-blur">
                     <div class="text-cyber-antigrav font-bold">Scalar Field Vector: Repulsive ($\nabla \Phi_g$)</div>
                     <div class="text-gray-400">Metric Distort Rate: <span id="grid-distortion-val" class="text-white">0.02 G</span></div>
-                    <div class="text-gray-400">Repulsion Force: <span id="grid-repulsion-val" class="text-cyber-antigrav">9.81 m/s²</span></div>
+                    <div class="text-gray-400">Repulsion Force: <span id="grid-repulsion-val" class="text-cyber-antigrav">9.81 m/sÂ²</span></div>
                 </div>
             </div>
         </div>
@@ -668,7 +669,7 @@
             const antiGravCoeff = parseFloat(slideAntiGrav.value);
 
             // Fetch live data or compute fallback locally if standalone
-            fetch(`/api/ai-pilot?mach=${mach}&voltage=${voltage}&warp=${warp}&swarm=${isSwarmActive}`)
+            fetch(quantumGravApi(`/api/ai-pilot?mach=${mach}&voltage=${voltage}&warp=${warp}&swarm=${isSwarmActive}`))
                 .then(res => res.json())
                 .then(data => {
                     updateMetricsUI(data);

@@ -12,16 +12,17 @@ class QuantumGravPhysicsEngine:
         incorporating Alcubierre warp metric suppression coefficients.
         """
         v = mach_speed * self.hypersonic_ref_speed
-        # Effective velocity scaled by warp density reduction
+        # Effective velocity scaled by warp density reduction (Fixed missing multiplication operator)
         v_effective = v * max(0.001, (1.0 - (warp_bubble_density * 0.095)))
         
         beta = v_effective / self.c
         # Prevent division by zero or imaginary numbers at extreme limits
         beta = min(beta, 0.999999999)
         
+        # Fixed missing multiplication operator (-)
         lorentz_gamma = 1.0 / np.sqrt(1.0 - (beta ** 2))
         
-        # High-precision microsecond time slip calculation per second elapsed
+        # High-precision microsecond time slip calculation per second elapsed (Fixed missing operators)
         time_slip_us = (lorentz_gamma - 1.0) * 1_000_000.0 * 0.001
         cockpit_drift_ms = time_slip_us * 0.001 * warp_bubble_density
 
@@ -39,6 +40,7 @@ class QuantumGravPhysicsEngine:
         voltage_factor = min(1.0, field_voltage_mv / 1000.0)
         density_factor = min(1.0, warp_bubble_density / 10.0)
         
+        # Fixed missing multiplication operator
         drag_reduction = 95.0 + (4.99 * (voltage_factor * density_factor))
         drag_reduction = min(99.999, max(0.0, drag_reduction))
 

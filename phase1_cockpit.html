@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
+    <script src="./api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROJECT QUANTUM-GRAV | Next-Gen Hypersonic Flight Deck</title>
@@ -125,11 +126,11 @@
     <div class="overhead-panel px-4 py-2 flex items-center justify-between text-xs tracking-widest font-bold">
         <div class="flex items-center space-x-4">
             <span class="px-2 py-1 bg-red-950 text-red-400 border border-red-600 rounded">SYS ALARM: OFF</span>
-            <span class="warning-strip px-3 py-1 rounded">⚠️ FLUX OVERHEAT [OK] &nbsp;|&nbsp; HTSC CRYOGENIC PUMP [ACTIVE] &nbsp;|&nbsp; TAJMAR G-DAMPENER [LOCKED]</span>
+            <span class="warning-strip px-3 py-1 rounded">âš ï¸ FLUX OVERHEAT [OK] &nbsp;|&nbsp; HTSC CRYOGENIC PUMP [ACTIVE] &nbsp;|&nbsp; TAJMAR G-DAMPENER [LOCKED]</span>
         </div>
         <div class="flex items-center space-x-6 text-cyan-400">
             <span>ZULU TIME: <span id="zulu-clock" class="text-white font-mono">13:29:45 Z</span></span>
-            <span class="px-3 py-1 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full animate-pulse">● DECK LINK SECURE</span>
+            <span class="px-3 py-1 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full animate-pulse">â— DECK LINK SECURE</span>
         </div>
     </div>
 
@@ -141,7 +142,7 @@
             <div>
                 <div class="flex items-center justify-between border-b border-emerald-800 pb-2 mb-4">
                     <h2 class="text-xs font-bold text-emerald-400 tracking-wider flex items-center gap-2">
-                        <span>🕹️</span> FLIGHT THROTTLE CONTROLS
+                        <span>ðŸ•¹ï¸</span> FLIGHT THROTTLE CONTROLS
                     </h2>
                     <span class="text-[10px] text-emerald-500 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700">MANUAL / DRL</span>
                 </div>
@@ -187,7 +188,7 @@
 
                 <!-- Autonomous AI Pilot Select -->
                 <div class="mt-4 pt-3 border-t border-emerald-900">
-                    <label class="block text-xs text-emerald-300 mb-1">🤖 Autonomous AI Pilot</label>
+                    <label class="block text-xs text-emerald-300 mb-1">ðŸ¤– Autonomous AI Pilot</label>
                     <select id="ai-pilot-mode" class="w-full bg-black border border-emerald-600 text-emerald-400 text-xs rounded p-2 focus:outline-none focus:border-cyan-400">
                         <option>Manual Override</option>
                         <option>PyTorch DRL Autonomous v2</option>
@@ -200,7 +201,7 @@
             <!-- EMERGENCY FLUX DUMP BUTTON -->
             <div>
                 <button id="btn-emergency" class="w-full py-3 px-4 bg-gradient-to-r from-red-950 to-red-900 border-2 border-red-600 text-red-200 font-bold text-xs tracking-widest rounded shadow-[0_0_15px_rgba(255,51,51,0.5)] hover:bg-red-800 transition-all active:scale-95 flex items-center justify-center gap-2">
-                    <span>🚨</span> EMERGENCY FLUX DUMP
+                    <span>ðŸš¨</span> EMERGENCY FLUX DUMP
                 </button>
                 <div class="text-[10px] text-center text-emerald-600 mt-2">SECURE AVIONICS BUS v4.82</div>
             </div>
@@ -250,7 +251,7 @@
                 <!-- Digital Readout Box 2 -->
                 <div class="crt-screen p-3 flex flex-col justify-between">
                     <div class="flex justify-between items-center text-[10px] text-emerald-500">
-                        <span>Lorentz Gamma (γ)</span>
+                        <span>Lorentz Gamma (Î³)</span>
                         <span>[SPECIAL REL]</span>
                     </div>
                     <div id="readout-gamma" class="text-xl font-bold text-cyan-400 my-1">1.0000</div>
@@ -263,7 +264,7 @@
                 <!-- MFD-1: CRT Primary Flight Display (HUD) -->
                 <div class="crt-screen p-4 flex flex-col h-[280px]">
                     <div class="flex justify-between items-center border-b border-emerald-900 pb-1 mb-2 text-xs">
-                        <span class="text-emerald-400 font-bold">🟢 MFD-1: PRIMARY FLIGHT DISPLAY (CRT HUD)</span>
+                        <span class="text-emerald-400 font-bold">ðŸŸ¢ MFD-1: PRIMARY FLIGHT DISPLAY (CRT HUD)</span>
                         <span id="hud-status-mode" class="text-cyan-400 text-[10px]">MODE: Manual Override</span>
                     </div>
                     <div class="flex-1 relative flex items-center justify-center bg-black/60 rounded border border-emerald-900/50 overflow-hidden">
@@ -291,7 +292,7 @@
                 <!-- MFD-2: Relativistic Microsecond Time Slip vs Velocity -->
                 <div class="crt-screen p-4 flex flex-col h-[280px]">
                     <div class="flex justify-between items-center border-b border-emerald-900 pb-1 mb-2 text-xs">
-                        <span class="text-emerald-400 font-bold">🟢 MFD-2: RELATIVISTIC TIME SLIP vs VELOCITY</span>
+                        <span class="text-emerald-400 font-bold">ðŸŸ¢ MFD-2: RELATIVISTIC TIME SLIP vs VELOCITY</span>
                         <span class="text-cyan-400 text-[10px]">CH-2 LIVE</span>
                     </div>
                     <div class="flex-1 relative bg-black/60 rounded border border-emerald-900/50 p-2">
@@ -305,7 +306,7 @@
                 <!-- MFD-3: Drag Suppression Gauge -->
                 <div class="crt-screen p-4 flex flex-col h-[260px] items-center justify-between">
                     <div class="w-full flex justify-between items-center text-xs border-b border-emerald-900 pb-1">
-                        <span class="text-emerald-400 font-bold">🟢 MFD-3: DRAG SUPPRESSION</span>
+                        <span class="text-emerald-400 font-bold">ðŸŸ¢ MFD-3: DRAG SUPPRESSION</span>
                         <span class="text-cyan-400 text-[10px]">ACTIVE G</span>
                     </div>
                     <div class="relative w-40 h-40 flex items-center justify-center">
@@ -321,7 +322,7 @@
                 <!-- MFD-4: 3D Space-Time Warp Curvature Canvas (Three.js) -->
                 <div class="crt-screen p-4 flex flex-col h-[260px]">
                     <div class="flex justify-between items-center text-xs border-b border-emerald-900 pb-1 mb-2">
-                        <span class="text-emerald-400 font-bold">🟢 MFD-4: 3D WARP CURVATURE</span>
+                        <span class="text-emerald-400 font-bold">ðŸŸ¢ MFD-4: 3D WARP CURVATURE</span>
                         <span class="text-cyan-400 text-[10px]">T00 TENSOR</span>
                     </div>
                     <div id="threeContainer" class="flex-1 w-full bg-black/80 rounded border border-emerald-900/50 overflow-hidden relative"></div>
@@ -330,7 +331,7 @@
                 <!-- MFD-5: Avionics Telemetry Log -->
                 <div class="crt-screen p-4 flex flex-col h-[260px]">
                     <div class="flex justify-between items-center text-xs border-b border-emerald-900 pb-1 mb-2">
-                        <span class="text-emerald-400 font-bold">🟢 MFD-5: AVIONICS LOG</span>
+                        <span class="text-emerald-400 font-bold">ðŸŸ¢ MFD-5: AVIONICS LOG</span>
                         <span class="text-cyan-400 text-[10px]">SECURE</span>
                     </div>
                     <div id="telemetry-terminal" class="flex-1 bg-black/90 p-3 rounded border border-emerald-900 text-[11px] font-mono text-emerald-400 overflow-y-auto leading-relaxed">
@@ -428,7 +429,7 @@
             sliderWarp.value = 0;
             sliderMach.value = 1.0;
             updatePhysics();
-            addTerminalLog("🚨 EMERGENCY FLUX DUMP ACTIVATED! FIELD COLLAPSED.");
+            addTerminalLog("ðŸš¨ EMERGENCY FLUX DUMP ACTIVATED! FIELD COLLAPSED.");
         });
 
         function addTerminalLog(msg) {
@@ -454,7 +455,7 @@
             data: {
                 labels: [2, 5, 8, 11, 14, 17, 20, 23],
                 datasets: [{
-                    label: 'Time Slip (μs)',
+                    label: 'Time Slip (Î¼s)',
                     data: [120, 350, 780, 1450, 2600, 4300, 7100, 11200],
                     borderColor: '#00ff66',
                     backgroundColor: 'rgba(0, 255, 102, 0.1)',
