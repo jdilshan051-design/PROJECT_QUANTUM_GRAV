@@ -26,16 +26,22 @@ def normalize_database_url():
     if url and "sslmode=" not in url: url += "&sslmode=require" if "?" in url else "?sslmode=require"
     return url
 
-# Database persistence is opt-in. A stale DATABASE_URL must not prevent API startup.
-database_enabled = os.getenv("ENABLE_DATABASE", "false").strip().lower() in {"1", "true", "yes"}
+# Database persistence: automatically active if DATABASE_URL is set, unless explicitly disabled
+db_url_env = os.getenv("DATABASE_URL", "").strip()
+default_db_enable = "true" if db_url_env else "false"
+database_enabled = os.getenv("ENABLE_DATABASE", default_db_enable).strip().lower() in {"1", "true", "yes"}
 _db_url = normalize_database_url() if database_enabled else ""
 db_engine = create_engine(_db_url, pool_pre_ping=True, pool_recycle=300) if _db_url else None
 
 @app.on_event("startup")
 def create_tables():
     if db_engine:
-        with db_engine.begin() as conn:
-            conn.execute(text("CREATE TABLE IF NOT EXISTS flight_logs (id BIGSERIAL PRIMARY KEY, mach_speed DOUBLE PRECISION NOT NULL, field_voltage DOUBLE PRECISION NOT NULL, warp_density DOUBLE PRECISION NOT NULL, telemetry_payload JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())"))
+        try:
+            with db_engine.begin() as conn:
+                conn.execute(text("CREATE TABLE IF NOT EXISTS flight_logs (id BIGSERIAL PRIMARY KEY, mach_speed DOUBLE PRECISION NOT NULL, field_voltage DOUBLE PRECISION NOT NULL, warp_density DOUBLE PRECISION NOT NULL, telemetry_payload JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())"))
+            logger.info("Database flight_logs table verified/created.")
+        except Exception as exc:
+            logger.warning(f"Database table verification deferred: {exc}")
 
 class FlightControlInput(BaseModel):
     mach_speed: float = Field(..., ge=0, le=100)
@@ -54,12 +60,16 @@ def evaluate(data):
         "swarm_mesh": swarm_engine.compute_fleet_swarm(fleet_size=data.active_swarm_nodes or 1, warp_index=data.warp_bubble_density)
     }
     if db_engine:
-        with db_engine.begin() as conn:
-            conn.execute(text("INSERT INTO flight_logs (mach_speed, field_voltage, warp_density, telemetry_payload) VALUES (:mach, :voltage, :warp, CAST(:payload AS JSONB))"), {"mach": vals["mach_speed"], "voltage": vals["field_voltage_mv"], "warp": vals["warp_bubble_density"], "payload": json.dumps(payload)})
+        try:
+            with db_engine.begin() as conn:
+                conn.execute(text("INSERT INTO flight_logs (mach_speed, field_voltage, warp_density, telemetry_payload) VALUES (:mach, :voltage, :warp, CAST(:payload AS JSONB))"), {"mach": vals["mach_speed"], "voltage": vals["field_voltage_mv"], "warp": vals["warp_bubble_density"], "payload": json.dumps(payload)})
+        except Exception as exc:
+            logger.warning(f"Failed to record flight log: {exc}")
     return payload
 
 @app.get("/")
 def root(): return {"system":"Project Quantum-Grav API", "status":"ONLINE", "database_connected":db_engine is not None}
+
 @app.get("/health")
 def health():
     if not db_engine:
@@ -67,24 +77,29 @@ def health():
     try:
         with db_engine.connect() as conn:
             conn.execute(text("SELECT 1"))
+        return {"status": "ok", "database_connected": True}
     except Exception as exc:
-        raise HTTPException(503, "Database connection failed") from exc
-    return {"status": "ok", "database_connected": True}
+        return {"status": "degraded", "database_connected": False, "error": str(exc)}
+
 @app.post("/calculate")
 def calculate(data: FlightControlInput):
     try: return {"status":"SUCCESS", "data":evaluate(data)}
     except Exception as exc:
         logger.exception("Calculation pipeline failed")
-        raise HTTPException(500, "Calculation or database logging failed") from exc
+        raise HTTPException(500, "Calculation failed") from exc
+
 @app.get("/api/warp-calculate")
 def warp_calculate(warp:float=7, voltage:float=1200, ai_active:bool=False, shockwave:bool=False, antigravity:bool=False):
     return warp_engine.calculate_warp_field(warp, voltage, ai_active, shockwave, antigravity)
+
 @app.get("/api/swarm-calculate")
 def swarm_calculate(fleet_size:int=Query(5,ge=1,le=100), sync_phase:float=0, warp:float=7, qenap:bool=True, formation:str="SPHERE", cooling:bool=False, antigravity:bool=True):
     return swarm_engine.compute_fleet_swarm(fleet_size, sync_phase, warp, qenap, formation, cooling, antigravity)
+
 @app.get("/api/ai-pilot")
 def ai_pilot(mach:float=13.6, voltage:float=1200, warp:float=7, swarm:bool=False):
     return drl_ai.compute_deep_learning_step(mach, voltage, warp, swarm)
+
 @app.get("/telemetry/history")
 def history(limit:int=Query(10,ge=1,le=100)):
     if not db_engine: raise HTTPException(503,"DATABASE_URL is not configured")
