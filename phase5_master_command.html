@@ -391,7 +391,8 @@
     <!-- ══ PHASE 5 SINGULARITY EXPERIENCE (Exact Port) ══════════════════ -->
     <div id="p3-singularity-overlay" class="fixed inset-0 z-50 bg-black hidden flex flex-col justify-between p-6"
          style="font-family:'Segoe UI',system-ui,sans-serif;">
-        <canvas id="p3-singularityCanvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;"></canvas>
+        <canvas id="p3-singularityCanvas" style="display:none;"></canvas>
+        <div id="p3-singularity3d" style="position:absolute;inset:0;z-index:1;overflow:hidden;background:#020617;"></div>
 
         <!-- TOP HUD BAR -->
         <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;background:rgba(2,6,23,0.82);backdrop-filter:blur(14px);border:1px solid rgba(6,182,212,0.35);border-radius:12px;padding:14px 20px;">
@@ -1143,6 +1144,97 @@
         let p3PhaseIdx = 0;
         let p3PhaseTimer = null;
         let p3Angle = 0;
+        let p3Scene3D = null;
+        let p3Camera3D = null;
+        let p3Renderer3D = null;
+        let p3BlackHole3D = null;
+        let p3Wormhole3D = null;
+        let p3Stars3D = null;
+        let p3TunnelTravel = 0;
+
+        function p3Init3DScene() {
+            if (p3Renderer3D) return;
+            const host = document.getElementById('p3-singularity3d');
+            p3Scene3D = new THREE.Scene();
+            p3Scene3D.background = new THREE.Color(0x020617);
+            p3Scene3D.fog = new THREE.FogExp2(0x020617, 0.004);
+            p3Camera3D = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, 0.1, 260);
+            p3Camera3D.position.set(0, 0, 12);
+            p3Renderer3D = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+            p3Renderer3D.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
+            p3Renderer3D.setSize(innerWidth, innerHeight);
+            p3Renderer3D.outputEncoding = THREE.sRGBEncoding;
+            p3Renderer3D.domElement.style.cssText = 'display:block;width:100%;height:100%;';
+            host.appendChild(p3Renderer3D.domElement);
+
+            const ambient = new THREE.AmbientLight(0x6c8aff, 0.75);
+            p3Scene3D.add(ambient);
+            const cyanLight = new THREE.PointLight(0x06d9ff, 3.5, 90); cyanLight.position.set(-7, 3, -12); p3Scene3D.add(cyanLight);
+            const goldLight = new THREE.PointLight(0xff9c24, 4.5, 70); goldLight.position.set(6, 2, -3); p3Scene3D.add(goldLight);
+
+            // Deep 3D star field.
+            const starPositions = new Float32Array(1800 * 3);
+            for (let i = 0; i < 1800; i++) {
+                const a = Math.random() * Math.PI * 2, z = -Math.random() * 180;
+                const radius = 18 + Math.random() * 95;
+                starPositions[i * 3] = Math.cos(a) * radius;
+                starPositions[i * 3 + 1] = Math.sin(a) * radius;
+                starPositions[i * 3 + 2] = z;
+            }
+            const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            p3Stars3D = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xd9f7ff, size: 0.16, transparent: true, opacity: 0.9, sizeAttenuation: true }));
+            p3Scene3D.add(p3Stars3D);
+
+            // Black hole, photon sphere, and hot accretion disk are actual 3D meshes.
+            p3BlackHole3D = new THREE.Group(); p3BlackHole3D.position.z = -7; p3Scene3D.add(p3BlackHole3D);
+            const core = new THREE.Mesh(new THREE.SphereGeometry(2.15, 64, 48), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+            p3BlackHole3D.add(core);
+            const photon = new THREE.Mesh(new THREE.TorusGeometry(2.42, 0.075, 16, 160), new THREE.MeshBasicMaterial({ color: 0xc4f7ff, transparent: true, opacity: 0.95 }));
+            p3BlackHole3D.add(photon);
+            const diskMat = new THREE.MeshStandardMaterial({ color: 0xff7a16, emissive: 0xff4b06, emissiveIntensity: 2.2, metalness: 0.18, roughness: 0.32, side: THREE.DoubleSide, transparent: true, opacity: 0.88 });
+            const disk = new THREE.Mesh(new THREE.TorusGeometry(4.05, 0.53, 24, 180), diskMat);
+            disk.rotation.x = 0.28; disk.rotation.y = -0.16; p3BlackHole3D.add(disk);
+            for (let i = 0; i < 4; i++) {
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(2.7 + i * 0.18, 0.025, 8, 128), new THREE.MeshBasicMaterial({ color: i % 2 ? 0x9b5cff : 0x22e6ff, transparent: true, opacity: 0.55 - i * 0.07 }));
+                ring.rotation.set(0.3 + i * 0.22, i * 0.31, i * 0.17); p3BlackHole3D.add(ring);
+            }
+            const halo = new THREE.Mesh(new THREE.SphereGeometry(2.7, 40, 32), new THREE.MeshBasicMaterial({ color: 0x6b35ff, transparent: true, opacity: 0.09, side: THREE.BackSide }));
+            p3BlackHole3D.add(halo);
+
+            // A traversable manifold: nested 3D throat rings plus helical field lines.
+            p3Wormhole3D = new THREE.Group(); p3Scene3D.add(p3Wormhole3D);
+            const ringColors = [0x13dcff, 0x9270ff, 0x44aaff, 0xbd54ff];
+            for (let i = 0; i < 36; i++) {
+                const z = 8 - i * 2.15;
+                const radius = 1.0 + (i / 35) * 7.1;
+                const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.027 + (i % 4) * 0.006, 8, 96), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length], transparent: true, opacity: 0.62 + 0.25 * Math.sin(i * 0.3) }));
+                mesh.position.z = z; mesh.scale.y = 0.94; mesh.rotation.z = i * 0.035; p3Wormhole3D.add(mesh);
+            }
+            for (let h = 0; h < 8; h++) {
+                const points = [];
+                for (let j = 0; j <= 160; j++) {
+                    const f = j / 160, z = 8 - f * 76, radius = 0.65 + f * 7.0;
+                    const a = f * Math.PI * 8 + h * Math.PI / 4;
+                    points.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, z));
+                }
+                const curve = new THREE.CatmullRomCurve3(points);
+                const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 180, 0.022, 6, false), new THREE.MeshBasicMaterial({ color: ringColors[h % ringColors.length], transparent: true, opacity: 0.68 }));
+                p3Wormhole3D.add(line);
+            }
+            for (let i = 0; i < 120; i++) {
+                const a = Math.random() * Math.PI * 2, z = -Math.random() * 74;
+                const r = 1.1 + Math.random() * 6.2;
+                const particle = new THREE.Mesh(new THREE.SphereGeometry(0.035 + Math.random() * 0.04, 6, 6), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length] }));
+                particle.position.set(Math.cos(a) * r, Math.sin(a) * r, z); p3Wormhole3D.add(particle);
+            }
+            window.addEventListener('resize', p3Resize3D);
+        }
+
+        function p3Resize3D() {
+            if (!p3Renderer3D || !p3Camera3D) return;
+            p3Camera3D.aspect = innerWidth / innerHeight; p3Camera3D.updateProjectionMatrix();
+            p3Renderer3D.setSize(innerWidth, innerHeight);
+        }
 
         // Wormhole tunnel particles (same as Phase 5)
         const p3WormParticles = [];
@@ -1160,6 +1252,8 @@
             p3InSingularity = true;
             p3PhaseIdx = 0;
             p3Angle = 0;
+            p3TunnelTravel = 0;
+            if (window.THREE) p3Init3DScene();
 
             const overlay = document.getElementById('p3-singularity-overlay');
             overlay.classList.remove('hidden');
@@ -1199,29 +1293,30 @@
 
         function p3RenderLoop() {
             if (!p3InSingularity) return;
-
-            const canvas = document.getElementById('p3-singularityCanvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const ctx = canvas.getContext('2d');
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
             const phase = p3Phases[p3PhaseIdx];
-
-            // ── Trail fade ───────────────────────────────────────────────────
-            ctx.fillStyle = 'rgba(0,0,0,0.18)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            if (phase.mode === 'horizon') {
-                p3DrawEventHorizon(ctx, cx, cy);
-            } else if (phase.mode === 'accretion') {
-                p3DrawAccretionDisk(ctx, cx, cy);
-            } else if (phase.mode === 'wormhole') {
-                p3DrawWormhole(ctx, cx, cy);
-            } else {
-                p3DrawSingularityCore(ctx, cx, cy);
+            if (p3Renderer3D) {
+                const t = p3Angle;
+                const inTunnel = phase.mode === 'wormhole';
+                p3Wormhole3D.visible = inTunnel;
+                p3BlackHole3D.visible = !inTunnel;
+                if (inTunnel) {
+                    p3TunnelTravel += 0.34 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.025;
+                    if (p3TunnelTravel > 73) p3TunnelTravel = 0;
+                    p3Camera3D.position.set(Math.sin(t * 0.35) * 0.28, Math.cos(t * 0.24) * 0.22, 12 - p3TunnelTravel);
+                    p3Camera3D.rotation.z = Math.sin(t * 0.19) * 0.025;
+                    p3Wormhole3D.rotation.z = t * 0.018;
+                    p3Wormhole3D.rotation.x = Math.sin(t * 0.12) * 0.025;
+                } else {
+                    p3Camera3D.position.set(Math.sin(t * 0.18) * 0.22, 0, 8.2);
+                    p3Camera3D.rotation.z = 0;
+                    p3BlackHole3D.position.z = -4.6;
+                    p3BlackHole3D.scale.setScalar(phase.mode === 'singularity' ? 1.2 : (phase.mode === 'horizon' ? 1.12 : 0.94));
+                    p3BlackHole3D.rotation.y = t * (phase.mode === 'singularity' ? 0.28 : 0.12);
+                    p3BlackHole3D.rotation.z = Math.sin(t * 0.14) * 0.08;
+                }
+                p3Stars3D.rotation.z = t * 0.003;
+                p3Renderer3D.render(p3Scene3D, p3Camera3D);
             }
-
             p3Angle += 0.028;
             p3SingularityRAF = requestAnimationFrame(p3RenderLoop);
         }
