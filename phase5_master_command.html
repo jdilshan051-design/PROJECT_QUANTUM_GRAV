@@ -71,6 +71,13 @@
         #p3-singularity-overlay { position: fixed; inset: 0; opacity: 0; transition: opacity .8s ease; pointer-events: none; }
         #p3-singularity-overlay.active { opacity: 1; pointer-events: auto; }
         @media (max-width: 640px) { #p3-singularity-overlay { padding: 12px !important; } #p3-singularity-title { letter-spacing: 2px !important; } }
+        @media (max-width: 900px) {
+            #p3-singularity-overlay > div:first-of-type { flex-wrap: wrap; gap: 10px; padding: 10px 12px !important; }
+            #p3-singularity-title { font-size: clamp(20px,4vw,34px) !important; letter-spacing: 3px !important; }
+            #p3-singularity-sub { font-size: 10px !important; letter-spacing: 1px !important; }
+            #p3-singularity-overlay > div:last-of-type { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px 12px; align-items: start; }
+            #p3-transit-status, #p3-model-note { grid-column: 1 / -1; }
+        }
     </style>
 </head>
 <body class="bg-cyber-bg text-gray-100 min-h-screen flex flex-col selection:bg-cyber-cyan selection:text-black relative">
@@ -428,7 +435,7 @@
             <span style="color:#9ca3af;">GEOMETRY SCALE: <strong style="color:#c084fc;" id="p3-bh-warp">2.40 SU</strong></span>
             <span style="color:#9ca3af;">LOCAL TIDAL CURVATURE: <strong style="color:#67e8f9;" id="p3-bh-flux">0.00 SU⁻²</strong></span>
             <span id="p3-transit-status" style="color:#34d399;animation:pulse 2s ease infinite;">&#9679; EXOTIC STRESS: THEORY-DEPENDENT</span>
-            <small style="width:100%;text-align:center;color:#64748b;font-size:9px;letter-spacing:1px;">MORRIS–THORNE / ELLIS-THROAT MODEL • QUANTUM-ENERGY EFFECTS ARE ILLUSTRATIVE • NO VERIFIED ANTIGRAVITY DRIVE</small>
+            <small id="p3-model-note" style="width:100%;text-align:center;color:#64748b;font-size:9px;letter-spacing:1px;">MORRIS–THORNE / ELLIS-THROAT MODEL • QUANTUM-ENERGY EFFECTS ARE ILLUSTRATIVE • NO VERIFIED ANTIGRAVITY DRIVE</small>
         </div>
 
         <style>
@@ -1143,20 +1150,20 @@
                 status: "MOUTH LOCKED • CLOSING RANGE"
             },
             {
-                title: "CROSSING THE THROAT",
-                sub: "LENSING FIELD ENVELOPE ENGAGED \u2022 INBOUND CROSSING",
+                title: "WORMHOLE ENTRY",
+                sub: "PORTAL CROSSED \u2022 MINIMUM-AREA THROAT AHEAD",
                 mode: "wormholeEntry",
                 dilation: "MODEL",
-                hud: "TRANSIT IN PROGRESS // CROSSING THE THROAT",
-                status: "THROAT CROSSING • FIELD STABLE"
+                hud: "TRANSIT IN PROGRESS // WORMHOLE ENTRY",
+                status: "PORTAL CROSSED • THROAT AHEAD"
             },
             {
-                title: "WORMHOLE MANIFOLD TRANSIT",
-                sub: "HYPERSPACE TUNNEL FLIGHT \u2022 DESTINATION INBOUND",
+                title: "THROAT CROSSING // MANIFOLD TRANSIT",
+                sub: "MINIMUM-AREA THROAT \u2022 OUTBOUND UNIVERSE AHEAD",
                 mode: "wormholeInside",
                 dilation: "MODEL",
-                hud: "TRANSIT IN PROGRESS // INSIDE THE WORMHOLE",
-                status: "INTERNAL TRANSIT • NAV BEACON TRACKING"
+                hud: "TRANSIT IN PROGRESS // MINIMUM THROAT CROSSING",
+                status: "THROAT CROSSING • QUANTUM-FLUX PROXY ACTIVE"
             },
             {
                 title: "WORMHOLE EXIT",
@@ -1181,6 +1188,8 @@
         let p3PhaseElapsed = 0;
         const p3ThroatRadius = 2.4;
         const p3RedshiftStrength = 0.65;
+        let p3QuantumThroatRing = null;
+        const p3FluxParticles = [];
 
         function p3WormholeRadius(l) {
             // Ellis/Morris–Thorne spatial slice: r(l)^2 = l^2 + b0^2, scaled to simulation units.
@@ -1260,6 +1269,12 @@
                 const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.027 + (i % 4) * 0.006, 8, 96), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length], transparent: true, opacity: 0.62 + 0.25 * Math.sin(i * 0.3) }));
                 mesh.position.z = z; mesh.scale.y = 0.94; mesh.rotation.z = i * 0.035; p3Wormhole3D.add(mesh);
             }
+            p3QuantumThroatRing = new THREE.Mesh(
+                new THREE.TorusGeometry(p3ThroatRadius, 0.11, 16, 160),
+                new THREE.MeshBasicMaterial({ color: 0xd18cff, transparent: true, opacity: 0.72 })
+            );
+            p3QuantumThroatRing.position.z = 0.08;
+            p3Wormhole3D.add(p3QuantumThroatRing);
             for (let h = 0; h < 8; h++) {
                 const points = [];
                 for (let j = 0; j <= 160; j++) {
@@ -1275,7 +1290,10 @@
                 const a = Math.random() * Math.PI * 2, z = 28 - Math.random() * 56;
                 const r = p3WormholeRadius(z) * (0.72 + Math.random() * 0.26);
                 const particle = new THREE.Mesh(new THREE.SphereGeometry(0.035 + Math.random() * 0.04, 6, 6), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length] }));
-                particle.position.set(Math.cos(a) * r, Math.sin(a) * r, z); p3Wormhole3D.add(particle);
+                particle.position.set(Math.cos(a) * r, Math.sin(a) * r, z);
+                particle.userData = { angle: a, radial: 0.72 + Math.random() * 0.26, speed: 0.07 + Math.random() * 0.12 };
+                p3FluxParticles.push(particle);
+                p3Wormhole3D.add(particle);
             }
             // Distinct, luminous entrance and destination gates give the tunnel a readable journey arc.
             const gateRadius = p3WormholeRadius(28);
@@ -1381,6 +1399,18 @@
                     p3Camera3D.rotation.z = Math.sin(t * 0.19) * 0.025;
                     p3Wormhole3D.rotation.z = t * 0.018;
                     p3Wormhole3D.rotation.x = Math.sin(t * 0.12) * 0.025;
+                    const quantumPulse = 0.5 + 0.5 * Math.sin(t * 1.7);
+                    p3QuantumThroatRing.material.opacity = 0.48 + quantumPulse * 0.44;
+                    p3QuantumThroatRing.scale.setScalar(1 + quantumPulse * 0.012);
+                    const warpSpeed = 1 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.01;
+                    for (const particle of p3FluxParticles) {
+                        particle.position.z -= particle.userData.speed * warpSpeed;
+                        if (particle.position.z < -28) particle.position.z = 28;
+                        particle.userData.angle += 0.006 + particle.userData.speed * 0.018;
+                        const r = p3WormholeRadius(particle.position.z) * particle.userData.radial;
+                        particle.position.x = Math.cos(particle.userData.angle) * r;
+                        particle.position.y = Math.sin(particle.userData.angle) * r;
+                    }
                 } else {
                     p3Camera3D.position.set(Math.sin(t * 0.18) * 0.22, 0, 8.2);
                     p3Camera3D.rotation.z = 0;
