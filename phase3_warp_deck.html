@@ -297,6 +297,48 @@
             pointer-events: none;
             z-index: 10;
         }
+
+        /* == BLACK HOLE EXPERIENCE STYLES == */
+        .btn-blackhole {
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(88,28,135,0.6));
+            color: #fff;
+            border: 1px solid rgba(167,139,250,0.7);
+            box-shadow: 0 0 10px rgba(139,92,246,0.4), inset 0 0 8px rgba(0,0,0,0.5);
+        }
+        .btn-blackhole:hover {
+            box-shadow: 0 0 22px rgba(139,92,246,0.9), 0 0 44px rgba(139,92,246,0.35);
+        }
+        .btn-blackhole.inactive {
+            background: rgba(30,41,59,0.6);
+            border-color: rgba(100,116,139,0.4);
+            color: var(--text-muted);
+            box-shadow: none;
+        }
+        #bh-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+            background: radial-gradient(circle at 50% 50%, transparent 26%, rgba(88,28,135,0.18) 50%, rgba(0,0,0,0.72) 100%);
+        }
+        #bh-overlay.active { opacity: 1; }
+        @keyframes tidalFlash {
+            0%   { box-shadow: inset 0 0 0px rgba(167,139,250,0); }
+            25%  { box-shadow: inset 0 0 45px rgba(167,139,250,0.55); }
+            50%  { box-shadow: inset 0 0 12px rgba(167,139,250,0.2); }
+            75%  { box-shadow: inset 0 0 55px rgba(139,92,246,0.65); }
+            100% { box-shadow: inset 0 0 0px rgba(167,139,250,0); }
+        }
+        #viewport-container.bh-tidal { animation: tidalFlash 1.8s ease infinite; }
+        .bh-readout {
+            font-size: 9px; padding: 2px 7px; border-radius: 3px;
+            background: rgba(88,28,135,0.5); color: #c4b5fd;
+            font-weight: 800; border: 1px solid rgba(139,92,246,0.4);
+            font-family: monospace; letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -381,6 +423,26 @@
                 <span class="metric-label">Gravimetric Field Status:</span>
                 <span class="metric-val" id="m-status" style="color:var(--neon-green)">STABLE BUBBLE</span>
             </div>
+            <div class="metric-row" id="bh-row-1" style="display:none">
+                <span class="metric-label">Schwarzschild Radius:</span>
+                <span class="metric-val bh-readout" id="m-bh-rs">-- km</span>
+            </div>
+            <div class="metric-row" id="bh-row-2" style="display:none">
+                <span class="metric-label">Hawking Temperature:</span>
+                <span class="metric-val bh-readout" id="m-bh-ht">-- nK</span>
+            </div>
+            <div class="metric-row" id="bh-row-3" style="display:none">
+                <span class="metric-label">Tidal Force at R_s:</span>
+                <span class="metric-val bh-readout" id="m-bh-tf">-- g</span>
+            </div>
+            <div class="metric-row" id="bh-row-4" style="display:none">
+                <span class="metric-label">Photon Sphere Orbit:</span>
+                <span class="metric-val bh-readout" id="m-bh-ps">-- km</span>
+            </div>
+            <div class="metric-row" id="bh-row-5" style="display:none">
+                <span class="metric-label">Accretion Disk Temp:</span>
+                <span class="metric-val bh-readout" id="m-bh-ad">-- MK</span>
+            </div>
 
             <div style="margin-top: auto; display:flex; flex-direction:column; gap: 6px;">
                 <button class="btn-action btn-danger" onclick="injectShockwave()">
@@ -391,6 +453,9 @@
                 </button>
                 <button id="ag-toggle-btn" class="btn-action btn-antigravity inactive" onclick="toggleAntigravity()">
                     <i class="fa-solid fa-shield-halved"></i> ANTIGRAVITY REPULSION FIELD: OFF
+                </button>
+                <button id="bh-toggle-btn" class="btn-action btn-blackhole inactive" onclick="toggleBlackHole()">
+                    <i class="fa-solid fa-circle-dot"></i> BLACK HOLE SINGULARITY: OFF
                 </button>
             </div>
         </div>
@@ -403,7 +468,8 @@
             </div>
 
             <div id="viewport-container">
-                <div class="hud-overlay-tag">SYS::VIEWPORT_ONLINE // DOPPLER_SHIFT_ACTIVE</div>
+                <div class="hud-overlay-tag" id="vp-tag">SYS::VIEWPORT_ONLINE // DOPPLER_SHIFT_ACTIVE</div>
+                <div id="bh-overlay"></div>
             </div>
 
             <!-- QUANTUM FLUX STREAM CHART -->
@@ -796,7 +862,260 @@
             drawMinkowskiDiagram();
             renderHeatmapMatrix(warpVal);
 
+            animateBlackHole();
             renderer.render(scene, camera);
+        }
+
+
+
+        // ═══════════════════════════════════════════════════════
+        // BLACK HOLE SINGULARITY EXPERIENCE
+        // ═══════════════════════════════════════════════════════
+        let blackHoleActive = false;
+
+        // Three.js Black Hole objects (created once)
+        let bhGroup = null;
+        let eventHorizon = null;
+        let photonRing = null;
+        let accretionDisk = null;
+        let accretionGlow = null;
+        let hawkingParticles = null;
+        let hawkingPositions = null;
+        let hawkingVels = null;
+        let gravitationalLensRing = null;
+        let bhStarField = null;
+        const BH_STAR_COUNT = 350;
+
+        function buildBlackHoleScene() {
+            bhGroup = new THREE.Group();
+
+            // ── Event Horizon (pitch-black sphere) ──────────────────
+            eventHorizon = new THREE.Mesh(
+                new THREE.SphereGeometry(1.2, 64, 64),
+                new THREE.MeshBasicMaterial({ color: 0x000000 })
+            );
+            bhGroup.add(eventHorizon);
+
+            // ── Photon Sphere ring (glowing ring of trapped light) ──
+            photonRing = new THREE.Mesh(
+                new THREE.TorusGeometry(1.82, 0.06, 24, 120),
+                new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 })
+            );
+            photonRing.rotation.x = Math.PI / 2;
+            bhGroup.add(photonRing);
+
+            // ── Accretion Disk (flat torus - glowing plasma ring) ───
+            accretionDisk = new THREE.Mesh(
+                new THREE.TorusGeometry(3.2, 0.55, 3, 180),
+                new THREE.MeshBasicMaterial({ color: 0xff6a00, transparent: true, opacity: 0.85 })
+            );
+            accretionDisk.rotation.x = Math.PI / 2.3;
+            bhGroup.add(accretionDisk);
+
+            // ── Inner accretion glow (hotter, brighter inner ring) ──
+            accretionGlow = new THREE.Mesh(
+                new THREE.TorusGeometry(2.0, 0.28, 3, 160),
+                new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.9 })
+            );
+            accretionGlow.rotation.x = Math.PI / 2.3;
+            bhGroup.add(accretionGlow);
+
+            // ── Gravitational Lensing outer ring ────────────────────
+            gravitationalLensRing = new THREE.Mesh(
+                new THREE.TorusGeometry(1.55, 0.025, 16, 200),
+                new THREE.MeshBasicMaterial({ color: 0xaad4ff, transparent: true, opacity: 0.6 })
+            );
+            gravitationalLensRing.rotation.x = Math.PI / 2;
+            bhGroup.add(gravitationalLensRing);
+
+            // Second lensing arc (rotated 60 degrees - Einstein ring effect)
+            const lensRing2 = new THREE.Mesh(
+                new THREE.TorusGeometry(1.55, 0.018, 16, 200),
+                new THREE.MeshBasicMaterial({ color: 0xaad4ff, transparent: true, opacity: 0.35 })
+            );
+            lensRing2.rotation.x = Math.PI / 2;
+            lensRing2.rotation.z = Math.PI / 3;
+            bhGroup.add(lensRing2);
+
+            // ── Hawking Radiation particles ──────────────────────────
+            const hwGeo = new THREE.BufferGeometry();
+            hawkingPositions = new Float32Array(BH_STAR_COUNT * 3);
+            hawkingVels = [];
+            for (let i = 0; i < BH_STAR_COUNT; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi   = Math.random() * Math.PI;
+                const r     = 1.25 + Math.random() * 0.15;
+                hawkingPositions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+                hawkingPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+                hawkingPositions[i*3+2] = r * Math.cos(phi);
+                hawkingVels.push(new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.04,
+                    (Math.random() - 0.5) * 0.04,
+                    (Math.random() - 0.5) * 0.04
+                ));
+            }
+            hwGeo.setAttribute('position', new THREE.BufferAttribute(hawkingPositions, 3));
+            hawkingParticles = new THREE.Points(hwGeo,
+                new THREE.PointsMaterial({ color: 0xc4b5fd, size: 0.07, transparent: true, opacity: 0.75 })
+            );
+            bhGroup.add(hawkingParticles);
+
+            // ── Lensed background star field ─────────────────────────
+            const sfGeo = new THREE.BufferGeometry();
+            const sfPos  = new Float32Array(BH_STAR_COUNT * 3);
+            for (let i = 0; i < BH_STAR_COUNT * 3; i += 3) {
+                sfPos[i]   = (Math.random() - 0.5) * 28;
+                sfPos[i+1] = (Math.random() - 0.5) * 20;
+                sfPos[i+2] = (Math.random() - 0.5) * 28;
+            }
+            sfGeo.setAttribute('position', new THREE.BufferAttribute(sfPos, 3));
+            bhStarField = new THREE.Points(sfGeo,
+                new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.5 })
+            );
+            bhGroup.add(bhStarField);
+
+            scene.add(bhGroup);
+        }
+
+        function toggleBlackHole() {
+            blackHoleActive = !blackHoleActive;
+            const btn = document.getElementById('bh-toggle-btn');
+            const vpContainer = document.getElementById('viewport-container');
+            const overlay = document.getElementById('bh-overlay');
+            const vpTag   = document.getElementById('vp-tag');
+            const bhRows  = [1,2,3,4,5];
+
+            if (blackHoleActive) {
+                btn.classList.remove('inactive');
+                btn.innerHTML = '<i class="fa-solid fa-circle-dot"></i> BLACK HOLE SINGULARITY: ACTIVE';
+
+                // Hide warp bubble & particles, show BH scene
+                warpBubble.visible = false;
+                particleSystem.visible = false;
+                spacecraft.visible = false;
+
+                // Reposition camera for dramatic BH view
+                camera.position.set(0, 4.5, 11);
+
+                // Build BH objects if not yet created
+                if (!bhGroup) buildBlackHoleScene();
+                else bhGroup.visible = true;
+
+                // Visual FX
+                overlay.classList.add('active');
+                vpContainer.classList.add('bh-tidal');
+                vpTag.textContent = 'SYS::SINGULARITY_LOCK // EVENT_HORIZON_DETECTED';
+                vpTag.style.color = '#c4b5fd';
+                vpTag.style.borderColor = 'rgba(139,92,246,0.5)';
+
+                // Show BH telemetry rows
+                bhRows.forEach(n => {
+                    document.getElementById('bh-row-' + n).style.display = '';
+                });
+
+                // Update BH metrics
+                updateBHMetrics();
+
+            } else {
+                btn.classList.add('inactive');
+                btn.innerHTML = '<i class="fa-solid fa-circle-dot"></i> BLACK HOLE SINGULARITY: OFF';
+
+                warpBubble.visible = true;
+                particleSystem.visible = true;
+                spacecraft.visible = true;
+
+                if (bhGroup) bhGroup.visible = false;
+
+                overlay.classList.remove('active');
+                vpContainer.classList.remove('bh-tidal');
+                vpTag.textContent = 'SYS::VIEWPORT_ONLINE // DOPPLER_SHIFT_ACTIVE';
+                vpTag.style.color = '';
+                vpTag.style.borderColor = '';
+
+                bhRows.forEach(n => {
+                    document.getElementById('bh-row-' + n).style.display = 'none';
+                });
+            }
+        }
+
+        function updateBHMetrics() {
+            // Physics-based calculations using warp factor as proxy for BH mass
+            const warpVal  = parseFloat(sliderWarp.value);
+            const massSM   = warpVal * 3.2;          // solar masses (scaled)
+            const G = 6.674e-11, c = 3e8, Msun = 1.989e30;
+            const M = massSM * Msun;
+            const rs_m   = (2 * G * M) / (c * c);
+            const rs_km  = (rs_m / 1000).toFixed(2);
+            const hbar   = 1.055e-34, kB = 1.38e-23;
+            const Th_K   = (hbar * c * c * c) / (8 * Math.PI * G * M * kB);
+            const Th_nK  = (Th_K * 1e9).toExponential(2);
+            const tidalG = ((2 * G * M) / (rs_m * rs_m * rs_m * 9.81)).toExponential(2);
+            const ps_km  = ((3 * rs_m) / 2 / 1000).toFixed(2);
+            const adTemp = (massSM * 1.8).toFixed(1);
+
+            document.getElementById('m-bh-rs').textContent = rs_km   + ' km';
+            document.getElementById('m-bh-ht').textContent = Th_nK   + ' nK';
+            document.getElementById('m-bh-tf').textContent = tidalG  + ' g';
+            document.getElementById('m-bh-ps').textContent = ps_km   + ' km';
+            document.getElementById('m-bh-ad').textContent = adTemp  + ' MK';
+        }
+
+        // ── Black Hole Animation Loop (called from main animate()) ───────
+        function animateBlackHole() {
+            if (!blackHoleActive || !bhGroup) return;
+            const t = Date.now() * 0.001;
+
+            // Accretion disk spin
+            if (accretionDisk)  accretionDisk.rotation.z  += 0.008;
+            if (accretionGlow)  accretionGlow.rotation.z  -= 0.015;
+
+            // Photon ring pulsation
+            if (photonRing) {
+                photonRing.material.opacity = 0.7 + 0.25 * Math.sin(t * 3.5);
+            }
+
+            // Lensing rings counter-rotate
+            if (gravitationalLensRing) {
+                gravitationalLensRing.rotation.y += 0.012;
+            }
+
+            // Hawking radiation: particles spiral outward from event horizon
+            if (hawkingParticles && hawkingPositions) {
+                for (let i = 0; i < BH_STAR_COUNT; i++) {
+                    const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
+                    hawkingPositions[ix]   += hawkingVels[i].x;
+                    hawkingPositions[iy]   += hawkingVels[i].y;
+                    hawkingPositions[iz]   += hawkingVels[i].z;
+                    const dist = Math.sqrt(
+                        hawkingPositions[ix]**2 +
+                        hawkingPositions[iy]**2 +
+                        hawkingPositions[iz]**2
+                    );
+                    // Respawn at event horizon when too far
+                    if (dist > 6.5) {
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi   = Math.random() * Math.PI;
+                        const r     = 1.25 + Math.random() * 0.12;
+                        hawkingPositions[ix]   = r * Math.sin(phi) * Math.cos(theta);
+                        hawkingPositions[iy]   = r * Math.sin(phi) * Math.sin(theta);
+                        hawkingPositions[iz]   = r * Math.cos(phi);
+                        hawkingVels[i].set(
+                            (Math.random() - 0.5) * 0.045,
+                            (Math.random() - 0.5) * 0.045,
+                            (Math.random() - 0.5) * 0.045
+                        );
+                    }
+                }
+                hawkingParticles.geometry.attributes.position.needsUpdate = true;
+                // Colour flicker
+                hawkingParticles.material.opacity = 0.55 + 0.3 * Math.sin(t * 5.2);
+            }
+
+            // Slow BH group rotation (precession)
+            bhGroup.rotation.y += 0.003;
+
+            // Update telemetry every 90 frames
+            if (Math.round(t * 60) % 90 === 0) updateBHMetrics();
         }
 
         window.onload = function() {
