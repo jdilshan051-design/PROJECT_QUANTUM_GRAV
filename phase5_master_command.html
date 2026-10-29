@@ -4,7 +4,7 @@
     <script src="./api-config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROJECT QUANTUM-GRAV - Phase 05 Command Deck</title>
+    <title>PROJECT QUANTUM-GRAV | Phase 05: Master Antigravity & Singularity Command</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,8 +18,8 @@
                             card: '#0B0F19',
                             border: '#1E293B',
                             cyan: '#06B6D4',
-                            neon: '#3B82F6',
                             purple: '#8B5CF6',
+                            neon: '#3B82F6',
                             danger: '#EF4444',
                             warning: '#F59E0B',
                             success: '#10B981'
@@ -33,16 +33,33 @@
             }
         }
     </script>
+    <!-- Three.js for NASA Orbital Trajectory Digital Twin & 3D Visuals -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- FontAwesome & Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #F3F4F6; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #F3F4F6; overflow-x: hidden; transition: background 0.3s ease; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.4); }
         .glow-purple { box-shadow: 0 0 25px rgba(139, 92, 246, 0.4); }
         .glow-btn { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
         .glass-panel { background: rgba(11, 15, 25, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(30, 41, 59, 0.8); }
+        
+        /* SpaceX Crew Dragon Touch Mode Styling */
+        body.crew-dragon-mode {
+            background-color: #050811 !important;
+            color: #F8FAFC !important;
+        }
+        body.crew-dragon-mode .glass-panel {
+            background: rgba(15, 23, 42, 0.88) !important;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important;
+            box-shadow: 0 0 30px rgba(14, 165, 233, 0.15) !important;
+        }
+        body.crew-dragon-mode .hud-glow {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+        }
+        
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #020617; }
@@ -52,41 +69,78 @@
 </head>
 <body class="bg-cyber-bg text-gray-100 min-h-screen flex flex-col selection:bg-cyber-cyan selection:text-black relative">
 
-    <!-- Top Navigation Header with Clean Project Name & Transit Button -->
-    <header class="glass-panel sticky top-0 z-40 border-b border-cyber-border px-8 py-5 flex flex-wrap justify-between items-center shadow-2xl">
-        <div class="flex items-center space-x-5">
+    <!-- Top Navigation Header with Enterprise SpaceX / NASA Suite -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-cyber-border px-6 py-4 flex flex-wrap justify-between items-center shadow-2xl gap-4">
+        <div class="flex items-center space-x-4">
             <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-cyber-cyan via-cyber-neon to-cyber-purple rounded-xl glow-cyan animate-pulse">
                 <i class="fa-solid fa-atom text-2xl text-black font-extrabold"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-3">
-                    <h1 class="text-2xl font-black tracking-widest bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent uppercase">
+                    <h1 class="text-xl md:text-2xl font-black tracking-widest bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent uppercase">
                         PROJECT QUANTUM-GRAV
                     </h1>
-                    <span class="text-[10px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyber-cyan border border-cyber-cyan/40 font-semibold">
-                        PHASE 05: MASTER ANTIGRAV COMMAND
+                    <span class="text-[10px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyber-cyan border border-cyber-cyan/40 font-semibold hidden sm:inline">
+                        SPACEX / NASA ENTERPRISE DECK
                     </span>
                 </div>
                 <p class="text-xs text-gray-400 font-mono tracking-wider mt-0.5">HIGH-ALTITUDE SPACETIME CURVATURE & SINGULARITY MANIFOLD DECKS</p>
             </div>
         </div>
 
-        <!-- Main Action Controls -->
-        <div class="flex items-center space-x-4 mt-4 md:mt-0">
-            <!-- BLACK HOLE SINGULARITY BUTTON -->
-            <button onclick="enterBlackHoleSingularity()" class="relative group overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono font-black text-xs px-6 py-3 rounded-xl tracking-wider transition-all transform hover:scale-105 glow-btn flex items-center space-x-3 border border-cyan-300/40">
-                <i class="fa-solid fa-circle-dot animate-spin text-cyan-200" style="animation-duration: 4s;"></i>
-                <span class="tracking-widest">🕳️ ENTER BLACK HOLE SINGULARITY</span>
-                <span class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+        <!-- Enterprise Flight Controls Suite -->
+        <div class="flex items-center space-x-2.5 flex-wrap gap-2">
+            <!-- AUDIO AVIONICS TOGGLE (Tesla / SpaceX Voice Cues) -->
+            <button id="btn-audio-toggle" onclick="toggleAudio()" title="Toggle Cockpit Voice & Audio SFX" class="px-3 py-2 rounded-xl bg-cyan-950/70 hover:bg-cyan-900 border border-cyan-500/50 text-cyan-300 font-mono text-xs font-bold transition-all flex items-center space-x-1.5 shadow-md">
+                <i id="audio-icon" class="fa-solid fa-volume-high text-cyan-400"></i>
+                <span id="audio-text">VOICE: ON</span>
             </button>
 
-            <button onclick="triggerEmergencyFlush()" class="bg-red-950/60 hover:bg-red-900 border border-red-600/60 text-red-400 px-4 py-3 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center space-x-2">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>PURGE</span>
+            <!-- SPACEX CREW DRAGON TOUCH UI TOGGLE -->
+            <button id="btn-theme-mode" onclick="toggleCrewDragonMode()" title="Toggle SpaceX Crew Dragon Touchscreen UI" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-600 text-gray-200 font-mono text-xs font-bold transition-all flex items-center space-x-1.5 shadow-md">
+                <i class="fa-solid fa-rocket text-purple-400"></i>
+                <span id="theme-text">DRAGON UI</span>
             </button>
-            <a href="index.html" class="bg-blue-950/60 hover:bg-blue-900 border border-cyan-500/60 text-cyan-300 px-4 py-3 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center space-x-2"><i class="fa-solid fa-house"></i><span>PORTAL HUB</span></a>
+
+            <!-- SUPABASE BLACK BOX TELEMETRY REPLAY -->
+            <button onclick="openBlackBoxModal()" title="Replay recorded telemetry from Supabase" class="px-3 py-2 rounded-xl bg-purple-950/70 hover:bg-purple-900 border border-purple-500/50 text-purple-300 font-mono text-xs font-bold transition-all flex items-center space-x-1.5 shadow-md">
+                <i class="fa-solid fa-tape text-purple-400"></i>
+                <span>BLACK BOX</span>
+            </button>
+
+            <!-- BLACK HOLE SINGULARITY BUTTON -->
+            <button onclick="enterBlackHoleSingularity()" class="relative group overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono font-black text-xs px-4 py-2 rounded-xl tracking-wider transition-all transform hover:scale-105 glow-btn flex items-center space-x-2 border border-cyan-300/40">
+                <i class="fa-solid fa-circle-dot animate-spin text-cyan-200" style="animation-duration: 4s;"></i>
+                <span class="tracking-widest">🕳️ SINGULARITY</span>
+            </button>
+
+            <!-- EMERGENCY ABORT / PURGE (NASA LAS) -->
+            <button onclick="triggerEmergencyFlush()" class="bg-red-950/80 hover:bg-red-900 border border-red-600 text-red-300 px-3.5 py-2 rounded-xl text-xs font-mono font-black tracking-wider transition-all flex items-center space-x-1.5 shadow-lg animate-pulse">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>ABORT</span>
+            </button>
+
+            <!-- PORTAL HUB -->
+            <a href="index.html" class="bg-blue-950/60 hover:bg-blue-900 border border-cyan-500/60 text-cyan-300 px-3 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center space-x-1.5">
+                <i class="fa-solid fa-house"></i>
+                <span>PORTAL</span>
+            </a>
         </div>
     </header>
+
+    <!-- REPLAY FLIGHT NOTIFICATION BANNER -->
+    <div id="replay-banner" class="hidden bg-gradient-to-r from-purple-900/90 via-blue-900/90 to-cyan-900/90 border-b border-cyan-400 px-6 py-2.5 flex items-center justify-between text-xs font-mono shadow-xl z-30">
+        <div class="flex items-center space-x-3">
+            <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
+            <span class="text-white font-bold tracking-widest uppercase">
+                📼 REPLAYING SUPABASE FLIGHT SESSION <span id="replay-mission-id" class="text-cyan-300">#--</span>
+            </span>
+        </div>
+        <div class="flex items-center space-x-4 text-cyan-200">
+            <span>STATUS: <strong class="text-white">STREAMING HISTORIC SENSOR TENSORS</strong></span>
+            <button onclick="stopMissionReplay()" class="px-2 py-0.5 rounded bg-red-950 border border-red-500 text-red-300 text-[10px] font-bold hover:bg-red-900">STOP REPLAY</button>
+        </div>
+    </div>
 
     <!-- Main Dashboard Grid -->
     <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto w-full">
@@ -99,7 +153,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-sm font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
                         <i class="fa-solid fa-sliders text-cyber-cyan"></i>
-                        <span>Test Mode Architecture</span>
+                        <span>Flight Architecture Mode</span>
                     </h2>
                     <span id="mode-indicator" class="text-xs font-mono px-2.5 py-1 rounded bg-cyan-950/60 text-cyber-cyan border border-cyber-cyan/40">GLOBAL SYNC</span>
                 </div>
@@ -120,7 +174,7 @@
                 <div>
                     <h2 class="text-sm font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2 mb-4">
                         <i class="fa-solid fa-gauge-high text-cyber-purple"></i>
-                        <span>Master Core Parameters</span>
+                        <span>Master Flight Core Parameters</span>
                     </h2>
 
                     <!-- Antigravity Voltage Slider -->
@@ -188,9 +242,9 @@
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
                         <i class="fa-solid fa-wave-square text-cyber-cyan"></i>
-                        <span>Gravitational Wave Spectrum Analyzer</span>
+                        <span>Gravitational Wave Oscilloscope</span>
                     </h3>
-                    <span class="text-[10px] font-mono text-cyber-cyan px-2 py-0.5 bg-cyan-950/60 rounded border border-cyber-cyan/40">LIVE OSCILLOSCOPE</span>
+                    <span class="text-[10px] font-mono text-cyber-cyan px-2 py-0.5 bg-cyan-950/60 rounded border border-cyber-cyan/40">LIVE ARINC 429</span>
                 </div>
                 <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
                     <canvas id="oscillatorCanvas" class="w-full h-full"></canvas>
@@ -198,25 +252,33 @@
                         FREQ: <span id="osc-freq">142.8</span> MHz | AMPLITUDE: <span id="osc-amp">84.2</span>%
                     </div>
                 </div>
-                <p class="text-[11px] text-gray-400 mt-3">Real-time signal oscillation responding dynamically to Antigravity voltage surges.</p>
+                <p class="text-[11px] text-gray-400 mt-3">High-frequency RF gravitational wave telemetry calibrated for warp density.</p>
             </div>
 
-            <!-- 2. 3D Rotating Wormhole Torus Canvas with Particle Event Horizon -->
+            <!-- 2. NASA JPL 3D ORBITAL TRAJECTORY & EARTH DIGITAL TWIN -->
             <div class="glass-panel p-5 rounded-2xl shadow-xl flex flex-col justify-between">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
-                        <i class="fa-solid fa-circle-notch text-cyber-purple"></i>
-                        <span>Wormhole Torus Event Horizon</span>
+                        <i class="fa-solid fa-earth-americas text-blue-400"></i>
+                        <span>NASA JPL Orbital Digital Twin</span>
                     </h3>
-                    <span class="text-[10px] font-mono text-cyber-purple px-2 py-0.5 bg-purple-950/60 rounded border border-purple-600/40">SINGULARITY 3D</span>
-                </div>
-                <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
-                    <canvas id="wormholeCanvas" class="w-full h-full"></canvas>
-                    <div class="absolute bottom-2 left-3 text-[10px] font-mono text-purple-400/80 pointer-events-none">
-                        THROAT STABILITY: <span id="wormhole-stability">99.4</span>%
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleVisualMode()" class="text-[10px] font-mono text-cyan-300 px-2 py-0.5 bg-blue-950/70 rounded border border-blue-500/50 hover:bg-blue-900 transition-all">
+                            <span id="visual-mode-label">VIEW: ORBIT</span>
+                        </button>
                     </div>
                 </div>
-                <p class="text-[11px] text-gray-400 mt-3">Multidimensional quantum torus warping space-time matrix particles.</p>
+                <div id="orbit3DContainer" class="relative w-full h-48 bg-black/80 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
+                    <canvas id="orbitCanvas" class="w-full h-full"></canvas>
+                    <canvas id="wormholeCanvas" class="w-full h-full hidden"></canvas>
+                    <div class="absolute bottom-2 left-3 text-[10px] font-mono text-cyan-300 pointer-events-none bg-black/60 px-2 py-0.5 rounded border border-cyan-500/30">
+                        ALT: <span id="orbital-alt">422.4</span> KM | VEL: <span id="orbital-vel">7.68</span> KM/S
+                    </div>
+                    <div class="absolute top-2 right-3 text-[9px] font-mono text-emerald-400 pointer-events-none bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
+                        ORBIT: KEPLER LEO 51.6°
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-3">Spacecraft orbital trajectory digital twin around Earth with real-time vector markers.</p>
             </div>
 
             <!-- 3. Dynamic Thermal & Radiation Flux Heatmap Status Indicator -->
@@ -224,13 +286,13 @@
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
                         <i class="fa-solid fa-temperature-arrow-up text-cyber-warning"></i>
-                        <span>Thermal & Radiation Flux Heatmap</span>
+                        <span>Thermal & Cryogenic Reactor Flux</span>
                     </h3>
                     <span id="thermal-status-badge" class="text-[10px] font-mono text-cyber-success px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-600/40">NOMINAL</span>
                 </div>
                 <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex flex-col items-center justify-center p-3">
                     <div id="heatmap-grid" class="grid grid-cols-8 gap-2 w-full h-full items-center justify-center">
-                        <!-- Populated by JS grid elements -->
+                        <!-- Populated by JS -->
                     </div>
                 </div>
                 <div class="flex justify-between items-center mt-3 text-xs font-mono">
@@ -239,14 +301,14 @@
                 </div>
             </div>
 
-            <!-- 4. Quantum Entanglement Holographic Radar Ring -->
+            <!-- 4. Subspace Quantum Holographic Radar Ring -->
             <div class="glass-panel p-5 rounded-2xl shadow-xl flex flex-col justify-between">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center space-x-2">
                         <i class="fa-solid fa-radar text-cyber-cyan"></i>
-                        <span>Quantum Holographic Radar Ring</span>
+                        <span>Subspace Mesh Radar Ring</span>
                     </h3>
-                    <span class="text-[10px] font-mono text-cyber-cyan px-2 py-0.5 bg-cyan-950/60 rounded border border-cyber-cyan/40">SUB-SPACE SWARM</span>
+                    <span class="text-[10px] font-mono text-cyber-cyan px-2 py-0.5 bg-cyan-950/60 rounded border border-cyber-cyan/40">SWARM LOCK</span>
                 </div>
                 <div class="relative w-full h-48 bg-black/70 rounded-xl overflow-hidden border border-cyber-border flex items-center justify-center">
                     <canvas id="radarCanvas" class="w-full h-full"></canvas>
@@ -254,33 +316,76 @@
                         TARGETS LOCKED: <span id="radar-targets" class="text-cyber-cyan">18</span>
                     </div>
                 </div>
-                <p class="text-[11px] text-gray-400 mt-3">Subspace quantum entanglement radar tracking decentralized fleet drones.</p>
+                <p class="text-[11px] text-gray-400 mt-3">Quantum-entangled radar tracking decentralized drone mesh nodes.</p>
             </div>
 
         </section>
 
     </main>
 
-    <!-- Footer Telemetry Log Bar -->
+    <!-- Footer Telemetry Log Bar (SpaceX / Tesla Avionics Standard) -->
     <footer class="glass-panel border-t border-cyber-border px-6 py-3 flex flex-wrap justify-between items-center text-xs font-mono text-gray-400">
-        <div class="flex items-center space-x-4">
-            <span>PROJECT: <strong class="text-cyber-cyan">QUANTUM-GRAV PHASE 5</strong></span>
+        <div class="flex items-center space-x-4 flex-wrap gap-2">
+            <span>AVIONICS BUS: <strong class="text-emerald-400">ARINC 429 (100Hz)</strong></span>
             <span>|</span>
-            <span>TELEMETRY (40ms): <strong id="api-status-text" class="text-cyber-success">TRANSMITTING</strong></span>
+            <span>SUPABASE CLOUD: <strong id="api-status-text" class="text-cyber-success">SYNCED</strong></span>
             <span>|</span>
-            <span>PACKETS: <strong id="packet-counter" class="text-cyber-cyan">0</strong></span>
+            <span>TELEMETRY PACKETS: <strong id="packet-counter" class="text-cyber-cyan">0</strong></span>
         </div>
         <div>
-            <span>SYSTEM AUTHORIZATION: <strong class="text-cyber-purple">OMEGA-LEVEL COMMANDER</strong></span>
+            <span>SECURITY LEVEL: <strong class="text-cyber-purple">OMEGA FLIGHT DIRECTOR</strong></span>
         </div>
     </footer>
 
+    <!-- BLACK BOX FLIGHT RECORDER MODAL (Tesla / Supabase Level) -->
+    <div id="blackbox-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel max-w-2xl w-full p-6 rounded-2xl border border-purple-500/50 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-tape text-purple-400 text-xl"></i>
+                    <div>
+                        <h2 class="text-base font-bold font-mono text-white">SUPABASE FLIGHT BLACK BOX RECORDER</h2>
+                        <p class="text-[11px] text-gray-400 font-mono">Historical Telemetry Logs & Mission Replay Engine</p>
+                    </div>
+                </div>
+                <button onclick="closeBlackBoxModal()" class="text-gray-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="blackbox-records-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                <!-- Dynamically loaded from Supabase -->
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs font-mono text-gray-400">
+                <span>DATABASE: <strong class="text-emerald-400">SUPABASE POSTGRESQL (ACTIVE)</strong></span>
+                <button onclick="closeBlackBoxModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 font-bold transition-all">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NASA / SPACEX EMERGENCY ABORT FULLSCREEN OVERLAY -->
+    <div id="abort-modal" class="fixed inset-0 z-50 bg-red-950/90 backdrop-blur-lg hidden flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-lg w-full p-8 rounded-3xl bg-black/90 border-2 border-red-500 shadow-[0_0_80px_rgba(239,68,68,0.7)] flex flex-col items-center">
+            <i class="fa-solid fa-triangle-exclamation text-6xl text-red-500 mb-4 animate-bounce"></i>
+            <h2 class="text-2xl font-black font-mono text-red-400 tracking-widest uppercase">EMERGENCY LAUNCH ABORT SYSTEM</h2>
+            <p class="text-xs font-mono text-gray-300 mt-2 tracking-wider">JETTISONING PLASMA REACTOR // REVERSE RETRO-THRUST ENGAGED</p>
+            
+            <div class="my-6">
+                <div class="text-6xl font-black font-mono text-white" id="abort-countdown">3</div>
+                <div class="text-[11px] font-mono text-red-300 mt-2 uppercase tracking-widest" id="abort-step-status">DECOUPLING CORE MATRIX...</div>
+            </div>
+
+            <div class="w-full bg-red-950/60 rounded-full h-3 border border-red-600/60 overflow-hidden">
+                <div class="bg-red-500 h-full animate-pulse" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- FULLSCREEN BLACK HOLE SINGULARITY SIMULATION OVERLAY -->
     <div id="singularity-overlay" class="fixed inset-0 z-50 bg-black hidden transition-opacity duration-1000 flex flex-col justify-between p-6">
-        <!-- Canvas Background Rendering Black Hole Transit -->
         <canvas id="singularityCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
 
-        <!-- Top HUD overlay -->
         <div class="relative z-10 flex justify-between items-center glass-panel p-4 rounded-xl border border-cyan-500/40">
             <div class="flex items-center space-x-3">
                 <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
@@ -296,9 +401,8 @@
             </div>
         </div>
 
-        <!-- Center Dynamic Transit Status Text -->
         <div class="relative z-10 text-center pointer-events-none my-auto">
-            <h2 id="singularity-phase-title" class="text-4xl md:text-6xl font-black font-mono tracking-widest bg-gradient-to-r from-purple-400 via-cyan-300 to-amber-300 bg-clip-text text-transparent animate-pulse drop-shadow-[0_0_35px_rgba(6,182,212,0.8)]">
+            <h2 id="singularity-phase-title" class="text-3xl md:text-5xl font-black font-mono text-white tracking-widest uppercase drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]">
                 ACCRETION DISK APPROACH
             </h2>
             <p id="singularity-phase-sub" class="text-xs md:text-sm font-mono text-cyan-200 tracking-widest mt-2 uppercase">
@@ -306,311 +410,351 @@
             </p>
         </div>
 
-        <!-- Bottom Controls Overlay -->
-        <div class="relative z-10 flex flex-wrap justify-between items-center glass-panel p-4 rounded-xl border border-purple-500/40 gap-4">
-            <div class="flex items-center space-x-4">
-                <button onclick="toggleTransitSpeed()" class="bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-400/60 text-cyan-300 font-mono text-xs px-4 py-2 rounded-lg font-bold transition-all">
-                    <i class="fa-solid fa-bolt mr-1"></i> BOOST WARP SPEED
-                </button>
-                <button onclick="changeTunnelDimension()" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-400/60 text-purple-300 font-mono text-xs px-4 py-2 rounded-lg font-bold transition-all">
-                    <i class="fa-solid fa-cube mr-1"></i> SHIFT QUANTUM DIMENSION
-                </button>
-            </div>
-            <div class="font-mono text-xs text-cyan-400">
-                THROAT RADIUS: <span id="singularity-radius" class="text-white font-bold">0.42 AU</span> | FREQUENCY HUM: <span class="text-emerald-400">SYNTHESIZED</span>
-            </div>
+        <div class="relative z-10 flex justify-between items-center glass-panel p-4 rounded-xl border border-purple-500/40 text-xs font-mono">
+            <span class="text-gray-400">WARP CURVATURE: <strong class="text-purple-400">12.0 W</strong></span>
+            <span class="text-gray-400">EXOTIC MASS FLUX: <strong class="text-cyan-400">-4.28e18 kg</strong></span>
+            <span class="text-emerald-400 animate-pulse">● TAJMAR FIELD LOCKED</span>
         </div>
     </div>
 
-    <!-- Application Script Logic -->
+    <!-- Core Interactive Application Logic -->
     <script>
         // --- State Management ---
         const state = {
-            mode: 'global', // 'global' or 'independent'
+            testMode: 'global',
             agVoltage: 45.0,
             warpFactor: 5.2,
             swarmDensity: 64,
-            packetCount: 0,
+            inSingularityMode: false,
             lastTelemetryTime: 0,
-            inSingularityMode: false
+            packetCount: 0,
+            isCrewDragonMode: false,
+            visualMode: 'orbit', // 'orbit' or 'wormhole'
+            audioEnabled: true
         };
 
-        // --- Audio Synthesizer via Web Audio API ---
+        // --- AUDIO AVIONICS & SYNTHETIC VOICE ENGINE (Tesla / SpaceX Standard) ---
         let audioCtx = null;
-        let humOsc = null;
-        let pulseOsc = null;
 
-        function startSingularityAudio() {
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playBeep(freq = 880, duration = 0.08, type = 'sine') {
+            if (!state.audioEnabled) return;
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                // Low deep gravitational rumble oscillator
-                humOsc = audioCtx.createOscillator();
-                const humGain = audioCtx.createGain();
-                humOsc.type = 'sawtooth';
-                humOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
-                humGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                humOsc.connect(humGain);
-                humGain.connect(audioCtx.destination);
-                humOsc.start();
-
-                // High speed warp pulse synthesizer
-                pulseOsc = audioCtx.createOscillator();
-                const pulseGain = audioCtx.createGain();
-                pulseOsc.type = 'sine';
-                pulseOsc.frequency.setValueAtTime(180, audioCtx.currentTime);
-                pulseGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                pulseOsc.connect(pulseGain);
-                pulseGain.connect(audioCtx.destination);
-                pulseOsc.start();
-            } catch (e) {
-                console.log("Audio synth optional");
-            }
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.06, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
         }
 
-        function stopSingularityAudio() {
-            if (humOsc) { humOsc.stop(); humOsc = null; }
-            if (pulseOsc) { pulseOsc.stop(); pulseOsc = null; }
+        function playKlaxonAlarm() {
+            if (!state.audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                for (let i = 0; i < 3; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    const start = ctx.currentTime + i * 0.35;
+                    osc.frequency.setValueAtTime(950, start);
+                    osc.frequency.linearRampToValueAtTime(450, start + 0.25);
+                    gain.gain.setValueAtTime(0.12, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.3);
+                }
+            } catch(e) {}
         }
 
-        // --- Black Hole Singularity Simulation Logic ---
-        const singCanvas = document.getElementById('singularityCanvas');
-        const singCtx = singCanvas.getContext('2d');
-        let singAnimFrame = null;
-        let singPhase = 0; // 0: approach, 1: plunge, 2: tunnel transit
-        let singSpeed = 1.0;
-        let tunnelColorMode = 0;
-        let stars = [];
-
-        function initSingularityStars() {
-            stars = [];
-            for (let i = 0; i < 350; i++) {
-                stars.push({
-                    x: (Math.random() - 0.5) * window.innerWidth * 2,
-                    y: (Math.random() - 0.5) * window.innerHeight * 2,
-                    z: Math.random() * 1000 + 10,
-                    size: Math.random() * 2 + 0.5,
-                    angle: Math.random() * Math.PI * 2
+        function playEngageChord() {
+            if (!state.audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    const start = ctx.currentTime + idx * 0.05;
+                    osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(0.05, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.35);
                 });
-            }
+            } catch(e) {}
         }
 
-        function enterBlackHoleSingularity() {
-            state.inSingularityMode = true;
-            document.getElementById('singularity-overlay').classList.remove('hidden');
-            initSingularityStars();
-            singPhase = 0;
-            startSingularityAudio();
-            renderSingularityFrame();
-
-            // Transition phases
-            setTimeout(() => {
-                if (state.inSingularityMode) {
-                    singPhase = 1;
-                    document.getElementById('singularity-phase-title').textContent = "EVENT HORIZON PLUNGE";
-                    document.getElementById('singularity-phase-sub').textContent = "PHOTON SPHERE DISTORTION • TIME DILATION DIVERGENCE";
-                }
-            }, 3500);
-
-            setTimeout(() => {
-                if (state.inSingularityMode) {
-                    singPhase = 2;
-                    document.getElementById('singularity-phase-title').textContent = "WORMHOLE MANIFOLD TRANSIT";
-                    document.getElementById('singularity-phase-sub').textContent = "QUANTUM FLUX HYPERSPACE TUNNEL • DISPATCHING TO SUBSPACE";
-                }
-            }, 7000);
+        function speakAvionics(text) {
+            if (!state.audioEnabled || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.05;
+                utterance.pitch = 1.08;
+                const voices = window.speechSynthesis.getVoices();
+                const preferred = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Zira') || v.name.includes('Samantha')));
+                if (preferred) utterance.voice = preferred;
+                window.speechSynthesis.speak(utterance);
+            } catch(e) {}
         }
 
-        function exitSingularityMode() {
-            state.inSingularityMode = false;
-            document.getElementById('singularity-overlay').classList.add('hidden');
-            if (singAnimFrame) cancelAnimationFrame(singAnimFrame);
-            stopSingularityAudio();
-        }
-
-        function toggleTransitSpeed() {
-            singSpeed = singSpeed === 1.0 ? 2.5 : (singSpeed === 2.5 ? 4.0 : 1.0);
-            document.getElementById('hud-dilation').textContent = (14.8 * singSpeed).toFixed(1) + 'x';
-        }
-
-        function changeTunnelDimension() {
-            tunnelColorMode = (tunnelColorMode + 1) % 3;
-        }
-
-        function renderSingularityFrame() {
-            if (!state.inSingularityMode) return;
-
-            singCanvas.width = window.innerWidth;
-            singCanvas.height = window.innerHeight;
-
-            const cx = singCanvas.width / 2;
-            const cy = singCanvas.height / 2;
-
-            singCtx.fillStyle = '#020617';
-            singCtx.fillRect(0, 0, singCanvas.width, singCanvas.height);
-
-            const time = performance.now() * 0.002 * singSpeed;
-
-            if (singPhase === 0 || singPhase === 1) {
-                // Draw Gravitational Lensing & Accretion Disk (Outer Glowing Rings)
-                const diskRadius = Math.min(cx, cy) * (singPhase === 0 ? 0.45 : 0.7);
-
-                // Fiery Outer Accretion Gradient
-                const diskGrad = singCtx.createRadialGradient(cx, cy, 30, cx, cy, diskRadius + 120);
-                diskGrad.addColorStop(0, '#000000');
-                diskGrad.addColorStop(0.2, 'rgba(6, 182, 212, 0.9)');
-                diskGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.8)');
-                diskGrad.addColorStop(0.8, 'rgba(245, 158, 11, 0.6)');
-                diskGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-                singCtx.fillStyle = diskGrad;
-                singCtx.beginPath();
-                singCtx.arc(cx, cy, diskRadius + 120, 0, Math.PI * 2);
-                singCtx.fill();
-
-                // Swirling Accretion Particle Rings
-                singCtx.lineWidth = 3;
-                for (let r = 40; r < diskRadius + 80; r += 12) {
-                    singCtx.strokeStyle = (r % 24 === 0) ? 'rgba(6, 182, 212, 0.6)' : 'rgba(245, 158, 11, 0.4)';
-                    singCtx.beginPath();
-                    singCtx.ellipse(cx, cy, r, r * 0.35, time * 0.5 + r * 0.01, 0, Math.PI * 2);
-                    singCtx.stroke();
-                }
-
-                // Central Event Horizon Black Void
-                const horizonRadius = 55 + Math.sin(time) * 5;
-                singCtx.fillStyle = '#000000';
-                singCtx.shadowBlur = 50;
-                singCtx.shadowColor = '#06B6D4';
-                singCtx.beginPath();
-                singCtx.arc(cx, cy, horizonRadius, 0, Math.PI * 2);
-                singCtx.fill();
-                singCtx.shadowBlur = 0;
-
-                // Star gravitational distortion pulling into central void
-                stars.forEach(st => {
-                    const dx = st.x;
-                    const dy = st.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-
-                    // Pull towards central black hole
-                    st.x -= (dx / dist) * 2 * singSpeed;
-                    st.y -= (dy / dist) * 2 * singSpeed;
-
-                    if (dist < horizonRadius) {
-                        st.x = (Math.random() - 0.5) * singCanvas.width;
-                        st.y = (Math.random() - 0.5) * singCanvas.height;
-                    }
-
-                    const px = cx + st.x;
-                    const py = cy + st.y;
-
-                    singCtx.fillStyle = '#ffffff';
-                    singCtx.beginPath();
-                    singCtx.arc(px, py, st.size, 0, Math.PI * 2);
-                    singCtx.fill();
-                });
-
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            const icon = document.getElementById('audio-icon');
+            const text = document.getElementById('audio-text');
+            if (state.audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-cyan-400';
+                text.textContent = 'VOICE: ON';
+                playEngageChord();
+                speakAvionics("Audio Avionics online. All systems nominal.");
             } else {
-                // PHASE 2: Full Quantum Wormhole Hyperspace Tunnel Plunge
-                const palette = [
-                    ['#06B6D4', '#3B82F6', '#8B5CF6'], // Cyan/Purple
-                    ['#10B981', '#06B6D4', '#F59E0B'], // Emerald/Amber
-                    ['#EF4444', '#8B5CF6', '#3B82F6']  // Crimson/Neon
-                ][tunnelColorMode];
+                icon.className = 'fa-solid fa-volume-xmark text-gray-500';
+                text.textContent = 'VOICE: MUTED';
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            }
+        }
 
-                // Hyperspace Tunnel Concentric Rings & Warp Lines
-                for (let i = 0; i < 35; i++) {
-                    const z = (i * 30 + time * 200) % 900;
-                    const scale = 500 / (z + 1);
-                    const r = 250 * scale;
+        // --- SPACEX CREW DRAGON TOUCH UI TOGGLE ---
+        function toggleCrewDragonMode() {
+            state.isCrewDragonMode = !state.isCrewDragonMode;
+            document.body.classList.toggle('crew-dragon-mode', state.isCrewDragonMode);
+            const label = document.getElementById('theme-text');
+            if (state.isCrewDragonMode) {
+                label.textContent = "CLASSIC UI";
+                playEngageChord();
+                speakAvionics("SpaceX Crew Dragon touchscreen mode enabled.");
+            } else {
+                label.textContent = "DRAGON UI";
+                playBeep(700);
+                speakAvionics("Classic warp command deck restored.");
+            }
+        }
 
-                    const ringGrad = singCtx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r);
-                    ringGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                    ringGrad.addColorStop(0.5, palette[i % 3]);
-                    ringGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        // --- Visual Mode Switcher (NASA 3D Orbit vs Wormhole) ---
+        function toggleVisualMode() {
+            playBeep(1100);
+            const orbitCanvas = document.getElementById('orbitCanvas');
+            const wormCanvas = document.getElementById('wormholeCanvas');
+            const label = document.getElementById('visual-mode-label');
+            
+            if (state.visualMode === 'orbit') {
+                state.visualMode = 'wormhole';
+                orbitCanvas.classList.add('hidden');
+                wormCanvas.classList.remove('hidden');
+                label.textContent = "VIEW: TORUS";
+                speakAvionics("Switched to wormhole singularity torus visualizer.");
+            } else {
+                state.visualMode = 'orbit';
+                wormCanvas.classList.add('hidden');
+                orbitCanvas.classList.remove('hidden');
+                label.textContent = "VIEW: ORBIT";
+                speakAvionics("NASA orbital digital twin trajectory visualizer engaged.");
+            }
+        }
 
-                    singCtx.strokeStyle = palette[i % 3];
-                    singCtx.lineWidth = Math.max(1, scale * 3);
-                    singCtx.beginPath();
-                    singCtx.arc(cx, cy, r, 0, Math.PI * 2);
-                    singCtx.stroke();
+        // --- SUPABASE BLACK BOX TELEMETRY REPLAY SYSTEM ---
+        let replayTimer = null;
+
+        async function openBlackBoxModal() {
+            playBeep(1000);
+            const modal = document.getElementById('blackbox-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const listContainer = document.getElementById('blackbox-records-list');
+            listContainer.innerHTML = '<div class="text-center py-8 text-cyan-400 font-mono text-sm animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-2"></i> CONNECTING TO SUPABASE TELEMETRY VAULT...</div>';
+            
+            try {
+                const res = await fetch(quantumGravApi('/telemetry/history?limit=10'));
+                if (!res.ok) throw new Error("Could not retrieve telemetry");
+                const json = await res.json();
+                const logs = json.logs || [];
+                
+                if (logs.length === 0) {
+                    listContainer.innerHTML = '<div class="text-center py-6 text-gray-400 font-mono text-xs">NO MISSION LOGS RECORDED YET. TRANSMIT TELEMETRY FIRST.</div>';
+                    return;
                 }
-
-                // Warp Streak Speed Particles
-                stars.forEach(st => {
-                    st.z -= 15 * singSpeed;
-                    if (st.z <= 1) st.z = 1000;
-
-                    const k = 400 / st.z;
-                    const px = cx + st.x * k;
-                    const py = cy + st.y * k;
-
-                    const prevK = 400 / (st.z + 40);
-                    const ppx = cx + st.x * prevK;
-                    const ppy = cy + st.y * prevK;
-
-                    singCtx.strokeStyle = palette[Math.floor(st.angle) % 3];
-                    singCtx.lineWidth = st.size * k * 0.5;
-                    singCtx.beginPath();
-                    singCtx.moveTo(ppx, ppy);
-                    singCtx.lineTo(px, py);
-                    singCtx.stroke();
+                
+                let html = '<div class="space-y-2">';
+                logs.forEach(log => {
+                    const time = log.timestamp ? log.timestamp.replace('T', ' ').substring(0, 19) : 'LIVE TELEMETRY RECORD';
+                    html += `
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-cyan-500/80 transition-all flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <div>
+                                    <div class="font-mono text-xs text-cyan-300 font-bold">MISSION RECORD #${log.id}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono">${time} UTC</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4 font-mono text-xs">
+                                <span class="text-gray-300">MACH: <strong class="text-cyan-400">${(log.mach_speed || 13.6).toFixed(1)}</strong></span>
+                                <span class="text-gray-300">VOLT: <strong class="text-cyan-400">${(log.field_voltage || 1200).toFixed(0)} mV</strong></span>
+                                <span class="text-gray-300">WARP: <strong class="text-purple-400">${(log.warp_density || 7.0).toFixed(1)} W</strong></span>
+                            </div>
+                            <button onclick="executeMissionReplay(${log.id}, ${log.mach_speed || 13.6}, ${log.field_voltage || 1200}, ${log.warp_density || 7.0})" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold transition-all shadow-md flex items-center space-x-1.5">
+                                <i class="fa-solid fa-play text-[10px]"></i>
+                                <span>REPLAY</span>
+                            </button>
+                        </div>
+                    `;
                 });
-            }
-
-            singAnimFrame = requestAnimationFrame(renderSingularityFrame);
-        }
-
-        // --- Initialize Neural Matrix Grid ---
-        function initNeuralMatrix() {
-            const grid = document.getElementById('neural-matrix-grid');
-            grid.innerHTML = '';
-            for (let i = 0; i < 18; i++) {
-                const node = document.createElement('div');
-                node.className = 'rounded bg-cyber-cyan/20 border border-cyber-cyan/40 transition-all duration-300';
-                node.id = `neural-node-${i}`;
-                grid.appendChild(node);
-            }
-        }
-
-        // --- Initialize Heatmap Grid ---
-        function initHeatmapGrid() {
-            const grid = document.getElementById('heatmap-grid');
-            grid.innerHTML = '';
-            for (let i = 0; i < 24; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'w-full h-full rounded bg-cyan-950/40 border border-cyber-cyan/20 transition-all duration-500';
-                cell.id = `heat-cell-${i}`;
-                grid.appendChild(cell);
+                html += '</div>';
+                listContainer.innerHTML = html;
+                speakAvionics("Black Box telemetry logs synchronized from Supabase.");
+            } catch(err) {
+                listContainer.innerHTML = `
+                    <div class="p-4 rounded-xl bg-slate-900 border border-slate-700 text-center font-mono text-xs text-cyan-300">
+                        <i class="fa-solid fa-check mr-1 text-emerald-400"></i> LOCAL DEMO BLACK BOX RECORDING ARCHIVE
+                    </div>
+                    <div class="mt-3 space-y-2">
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+                            <div>
+                                <div class="font-mono text-xs text-cyan-300 font-bold">MISSION ARCHIVE #104 (SUPERSONIC FLIGHT)</div>
+                                <div class="text-[10px] text-gray-400 font-mono">MACH: 18.4 | VOLTAGE: 1800 mV | WARP: 8.5 W</div>
+                            </div>
+                            <button onclick="executeMissionReplay(104, 18.4, 1800, 8.5)" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold">REPLAY</button>
+                        </div>
+                    </div>
+                `;
             }
         }
 
-        // --- Set Test Mode ---
+        function closeBlackBoxModal() {
+            playBeep(800);
+            const modal = document.getElementById('blackbox-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function executeMissionReplay(id, targetMach, targetVoltage, targetWarp) {
+            closeBlackBoxModal();
+            playEngageChord();
+            speakAvionics(`Initiating black box telemetry replay for mission log ${id}. Synchronizing flight sensors.`);
+            
+            const banner = document.getElementById('replay-banner');
+            banner.classList.remove('hidden');
+            document.getElementById('replay-mission-id').textContent = '#' + id;
+            
+            let step = 0;
+            const maxSteps = 25;
+            const initialAg = state.agVoltage;
+            const initialWarp = state.warpFactor;
+            const targetAg = targetVoltage / 20;
+            
+            if (replayTimer) clearInterval(replayTimer);
+            
+            replayTimer = setInterval(() => {
+                step++;
+                const progress = step / maxSteps;
+                state.agVoltage = initialAg + (targetAg - initialAg) * progress;
+                state.warpFactor = initialWarp + (targetWarp - initialWarp) * progress;
+                
+                document.getElementById('slider-ag-voltage').value = state.agVoltage;
+                document.getElementById('slider-warp-factor').value = state.warpFactor;
+                handleMasterSliderInput();
+                playBeep(600 + step * 30, 0.04);
+                
+                if (step >= maxSteps) {
+                    clearInterval(replayTimer);
+                    speakAvionics("Mission replay complete. Cockpit stabilized.");
+                    setTimeout(() => { banner.classList.add('hidden'); }, 3000);
+                }
+            }, 100);
+        }
+
+        function stopMissionReplay() {
+            if (replayTimer) clearInterval(replayTimer);
+            document.getElementById('replay-banner').classList.add('hidden');
+            playBeep(700);
+            speakAvionics("Replay terminated.");
+        }
+
+        // --- NASA / SPACEX EMERGENCY ABORT LAUNCH FAILSAPE (LAS) ---
+        function triggerEmergencyFlush() {
+            playKlaxonAlarm();
+            speakAvionics("Warning! Emergency Launch Abort System activated! Diverting plasma flux!");
+            
+            const abortModal = document.getElementById('abort-modal');
+            abortModal.classList.remove('hidden');
+            abortModal.classList.add('flex');
+            
+            let countdown = 3;
+            const cdEl = document.getElementById('abort-countdown');
+            const statusEl = document.getElementById('abort-step-status');
+            cdEl.textContent = countdown;
+            statusEl.textContent = "DECOUPLING HYPERSPACE CORE...";
+            
+            const cdTimer = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    cdEl.textContent = countdown;
+                    playBeep(440, 0.15, 'sawtooth');
+                    if (countdown === 2) statusEl.textContent = "FIRING REVERSE JET ATTITUDE THRUSTERS...";
+                    if (countdown === 1) statusEl.textContent = "DEPLOYING SUPERCONDUCTING GRAV-DAMPENERS...";
+                } else {
+                    clearInterval(cdTimer);
+                    cdEl.textContent = "0";
+                    statusEl.textContent = "CORE SAFELY JETTISONED // SYSTEMS SECURE";
+                    playEngageChord();
+                    speakAvionics("Emergency abort successful. Vessel trajectory stabilized.");
+                    
+                    document.getElementById('slider-ag-voltage').value = 0;
+                    document.getElementById('slider-warp-factor').value = 1.0;
+                    document.getElementById('slider-swarm-density').value = 10;
+                    handleMasterSliderInput();
+                    
+                    setTimeout(() => {
+                        abortModal.classList.add('hidden');
+                        abortModal.classList.remove('flex');
+                    }, 2200);
+                }
+            }, 1000);
+        }
+
+        // --- Mode Switcher ---
         function setTestMode(mode) {
-            state.mode = mode;
+            state.testMode = mode;
+            playBeep(900);
             const btnGlobal = document.getElementById('btn-global');
-            const btnInd = document.getElementById('btn-independent');
-            const modeInd = document.getElementById('mode-indicator');
+            const btnIndependent = document.getElementById('btn-independent');
+            const indicator = document.getElementById('mode-indicator');
 
             if (mode === 'global') {
                 btnGlobal.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-cyan bg-cyber-cyan/20 text-cyber-cyan shadow-lg glow-cyan flex items-center justify-center space-x-2";
-                btnInd.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-border bg-cyber-card text-gray-400 hover:text-white hover:border-gray-600 flex items-center justify-center space-x-2";
-                modeInd.textContent = "GLOBAL SYNC";
-                modeInd.className = "text-xs font-mono px-2.5 py-1 rounded bg-cyan-950/60 text-cyber-cyan border border-cyber-cyan/40";
+                btnIndependent.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-border bg-cyber-card text-gray-400 hover:text-white hover:border-gray-600 flex items-center justify-center space-x-2";
+                indicator.textContent = "GLOBAL SYNC";
+                indicator.className = "text-xs font-mono px-2.5 py-1 rounded bg-cyan-950/60 text-cyber-cyan border border-cyber-cyan/40";
+                speakAvionics("Global fleet synchronization active.");
             } else {
-                btnInd.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-purple bg-cyber-purple/20 text-cyber-purple shadow-lg glow-purple flex items-center justify-center space-x-2";
+                btnIndependent.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg glow-purple flex items-center justify-center space-x-2";
                 btnGlobal.className = "py-3 px-4 rounded-xl font-mono text-xs font-bold transition-all border border-cyber-border bg-cyber-card text-gray-400 hover:text-white hover:border-gray-600 flex items-center justify-center space-x-2";
-                modeInd.textContent = "INDEPENDENT MANUAL";
-                modeInd.className = "text-xs font-mono px-2.5 py-1 rounded bg-purple-950/60 text-cyber-purple border border-purple-600/40";
+                indicator.textContent = "INDEPENDENT";
+                indicator.className = "text-xs font-mono px-2.5 py-1 rounded bg-purple-950/60 text-purple-400 border border-purple-600/40";
+                speakAvionics("Independent manual mode engaged.");
             }
         }
 
-        // --- Handle Master Sliders ---
+        // --- Slider & Telemetry Handlers ---
         function handleMasterSliderInput() {
             state.agVoltage = parseFloat(document.getElementById('slider-ag-voltage').value);
             state.warpFactor = parseFloat(document.getElementById('slider-warp-factor').value);
@@ -634,26 +778,109 @@
             fetch(quantumGravApi('/calculate'), {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mach_speed: 13.6, field_voltage_mv: state.agVoltage * 20, warp_bubble_density: state.warpFactor, active_swarm_nodes: Math.max(1, Math.round(state.swarmDensity / 10)) })
-            }).then(response => { if (!response.ok) throw new Error('API unavailable'); status.textContent = 'CONNECTED';
+            }).then(response => { if (!response.ok) throw new Error('API unavailable'); status.textContent = 'SYNCED';
             }).catch(() => { status.textContent = 'OFFLINE'; });
         }
 
-        function triggerEmergencyFlush() {
-            document.getElementById('slider-ag-voltage').value = 0;
-            document.getElementById('slider-warp-factor').value = 1.0;
-            document.getElementById('slider-swarm-density').value = 10;
-            handleMasterSliderInput();
+        // --- NASA JPL 3D ORBITAL TRAJECTORY DIGITAL TWIN (Three.js) ---
+        let orbitRenderer, orbitScene, orbitCamera, earthMesh, orbitLine, craftMesh;
+        let orbitAngle = 0;
 
-            const badge = document.getElementById('thermal-status-badge');
-            badge.textContent = "EMERGENCY PURGE";
-            badge.className = "text-[10px] font-mono text-red-400 px-2 py-0.5 bg-red-950/80 rounded border border-red-600 animate-bounce";
-            setTimeout(() => {
-                badge.textContent = "NOMINAL";
-                badge.className = "text-[10px] font-mono text-cyber-success px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-600/40";
-            }, 3000);
+        function init3DOrbit() {
+            const container = document.getElementById('orbit3DContainer');
+            const canvas = document.getElementById('orbitCanvas');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            orbitScene = new THREE.Scene();
+            orbitCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            orbitCamera.position.set(0, 35, 60);
+            orbitCamera.lookAt(0, 0, 0);
+
+            orbitRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            orbitRenderer.setSize(width, height);
+            orbitRenderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0x223355, 1.2);
+            orbitScene.add(ambient);
+            const sunLight = new THREE.DirectionalLight(0x06B6D4, 2.5);
+            sunLight.position.set(30, 20, 40);
+            orbitScene.add(sunLight);
+
+            // Glowing Earth Sphere with wireframe & atmosphere
+            const earthGeo = new THREE.SphereGeometry(12, 32, 32);
+            const earthMat = new THREE.MeshPhongMaterial({
+                color: 0x0A2540,
+                emissive: 0x021B33,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.85
+            });
+            earthMesh = new THREE.Mesh(earthGeo, earthMat);
+            orbitScene.add(earthMesh);
+
+            // Atmospheric glow ring
+            const atmosGeo = new THREE.SphereGeometry(12.5, 32, 32);
+            const atmosMat = new THREE.MeshBasicMaterial({
+                color: 0x06B6D4,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
+            orbitScene.add(atmosMesh);
+
+            // Orbital Ellipse Path (LEO 51.6 deg)
+            const orbitCurve = new THREE.EllipseCurve(0, 0, 24, 21, 0, 2 * Math.PI, false, 0);
+            const orbitPoints = orbitCurve.getPoints(100);
+            const orbitGeom = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+            const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x8B5CF6, transparent: true, opacity: 0.7 });
+            orbitLine = new THREE.Line(orbitGeom, orbitMaterial);
+            orbitLine.rotation.x = Math.PI / 3;
+            orbitLine.rotation.y = 0.2;
+            orbitScene.add(orbitLine);
+
+            // Orbiting Spacecraft Node
+            const craftGeo = new THREE.OctahedronGeometry(1.4, 0);
+            const craftMat = new THREE.MeshBasicMaterial({ color: 0x00FFCC, wireframe: false });
+            craftMesh = new THREE.Mesh(craftGeo, craftMat);
+            orbitScene.add(craftMesh);
+
+            animate3DOrbit();
         }
 
-        // --- Canvas 1: Gravitational Wave Spectrum Analyzer Oscilloscope ---
+        function animate3DOrbit() {
+            requestAnimationFrame(animate3DOrbit);
+            if (state.visualMode !== 'orbit') return;
+
+            if (earthMesh) earthMesh.rotation.y += 0.003;
+            
+            orbitAngle += 0.015 + (state.warpFactor * 0.004);
+            const a = 24;
+            const b = 21;
+            const x = a * Math.cos(orbitAngle);
+            const y = b * Math.sin(orbitAngle);
+
+            if (craftMesh) {
+                craftMesh.position.x = x * Math.cos(0.2) - y * Math.sin(0.2) * Math.cos(Math.PI / 3);
+                craftMesh.position.y = y * Math.sin(Math.PI / 3);
+                craftMesh.position.z = x * Math.sin(0.2) + y * Math.cos(0.2) * Math.cos(Math.PI / 3);
+                craftMesh.rotation.x += 0.04;
+                craftMesh.rotation.y += 0.03;
+            }
+
+            const alt = 410 + Math.sin(orbitAngle) * 25 + (state.agVoltage * 0.2);
+            const vel = 7.6 + (state.warpFactor * 0.12);
+            const altEl = document.getElementById('orbital-alt');
+            const velEl = document.getElementById('orbital-vel');
+            if (altEl) altEl.textContent = alt.toFixed(1);
+            if (velEl) velEl.textContent = vel.toFixed(2);
+
+            orbitRenderer.render(orbitScene, orbitCamera);
+        }
+
+        // --- Canvas 1: Gravitational Wave Frequency Spectrum Analyzer Oscilloscope ---
         const oscCanvas = document.getElementById('oscillatorCanvas');
         const oscCtx = oscCanvas.getContext('2d');
         let oscTime = 0;
@@ -714,6 +941,10 @@
         }
 
         function drawWormhole() {
+            if (state.visualMode !== 'wormhole') {
+                requestAnimationFrame(drawWormhole);
+                return;
+            }
             wormCanvas.width = wormCanvas.parentElement.clientWidth;
             wormCanvas.height = wormCanvas.parentElement.clientHeight;
 
@@ -750,8 +981,6 @@
             });
 
             wormAngle += 0.02 + (state.warpFactor * 0.005);
-            document.getElementById('wormhole-stability').textContent = (99.8 - (state.agVoltage * 0.02)).toFixed(1);
-
             requestAnimationFrame(drawWormhole);
         }
 
@@ -861,17 +1090,108 @@
             requestAnimationFrame(drawRadar);
         }
 
-        // --- Initialization on Load ---
+        // --- Black Hole Singularity Simulation ---
+        function enterBlackHoleSingularity() {
+            state.inSingularityMode = true;
+            playKlaxonAlarm();
+            speakAvionics("Warning! Spacetime curvature anomaly. Approaching event horizon singularity.");
+            
+            const overlay = document.getElementById('singularity-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('opacity-100'), 50);
+            initSingularityCanvas();
+        }
+
+        function exitSingularityMode() {
+            playEngageChord();
+            speakAvionics("Exiting singularity mode. Subspace warp collapsed to nominal state.");
+            const overlay = document.getElementById('singularity-overlay');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                state.inSingularityMode = false;
+            }, 500);
+        }
+
+        function initSingularityCanvas() {
+            const canvas = document.getElementById('singularityCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let angle = 0;
+            function renderSingularity() {
+                if (!state.inSingularityMode) return;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                // Event Horizon Shadow
+                ctx.fillStyle = '#000000';
+                ctx.shadowBlur = 60;
+                ctx.shadowColor = '#8B5CF6';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 90, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Photon Sphere & Accretion Ring
+                ctx.strokeStyle = '#06B6D4';
+                ctx.lineWidth = 4;
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#06B6D4';
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, 280, 70, angle * 0.5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                angle += 0.03;
+                requestAnimationFrame(renderSingularity);
+            }
+            renderSingularity();
+        }
+
+        // --- Grids Initialization ---
+        function initNeuralMatrix() {
+            const container = document.getElementById('neural-matrix-grid');
+            container.innerHTML = '';
+            for (let i = 0; i < 18; i++) {
+                const div = document.createElement('div');
+                div.id = `neural-node-${i}`;
+                div.className = "rounded bg-cyber-cyan/40 border border-cyber-cyan/40";
+                container.appendChild(div);
+            }
+        }
+
+        function initHeatmapGrid() {
+            const container = document.getElementById('heatmap-grid');
+            container.innerHTML = '';
+            for (let i = 0; i < 24; i++) {
+                const div = document.createElement('div');
+                div.id = `heat-cell-${i}`;
+                div.className = "w-full h-full rounded bg-cyan-950/50 border border-cyber-cyan/40";
+                container.appendChild(div);
+            }
+        }
+
+        // --- Window Onload Initialization ---
         window.onload = function() {
             initNeuralMatrix();
             initHeatmapGrid();
             drawOscillator();
             drawWormhole();
             drawRadar();
+            init3DOrbit();
             setInterval(updateThermalHeatmap, 200);
+            
+            // Initial Welcome Chime
+            setTimeout(() => {
+                playEngageChord();
+                speakAvionics("Project Quantum-Grav Enterprise Aerospace Deck initialized. Telemetry link active.");
+            }, 800);
         };
     </script>
-
 </body>
 </html>
-
