@@ -407,10 +407,14 @@
                 <span style="width:12px;height:12px;border-radius:50%;background:#ef4444;display:inline-block;animation:ping 1s cubic-bezier(0,0,0.2,1) infinite;"></span>
                 <span id="p3-hud-transit" style="font-family:'Courier New',monospace;font-size:11px;color:#67e8f9;font-weight:700;letter-spacing:2px;">SINGULARITY TRANSIT IN PROGRESS // EVENT HORIZON PLUNGE</span>
             </div>
-            <div style="display:flex;align-items:center;gap:20px;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
                 <span style="font-family:'Courier New',monospace;font-size:11px;color:#d1d5db;">
-                    GRAVITATIONAL DILATION: <span id="p3-hud-dilation" style="color:#c084fc;font-weight:700;">14.8x</span>
+                    <span id="p3-hud-time-label">GRAVITATIONAL DILATION:</span> <span id="p3-hud-dilation" style="color:#c084fc;font-weight:700;">14.8x</span>
                 </span>
+                <button id="p3-observer-toggle" onclick="p3ToggleObserverMode()"
+                    style="background:rgba(8,47,73,0.82);border:1px solid #22d3ee;color:#a5f3fc;font-family:'Courier New',monospace;font-size:10px;font-weight:700;padding:8px 12px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;">
+                    <i class="fa-solid fa-eye" style="margin-right:4px;"></i> RELATIVISTIC OBSERVER
+                </button>
                 <button onclick="p3ExitSingularity()"
                     style="background:rgba(127,29,29,0.8);border:1px solid #ef4444;color:#fca5a5;font-family:'Courier New',monospace;font-size:11px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;">
                     <i class="fa-solid fa-power-off" style="margin-right:4px;"></i> EXIT TRANSIT
@@ -432,9 +436,15 @@
 
         <!-- BOTTOM STATUS BAR -->
         <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;background:rgba(2,6,23,0.82);backdrop-filter:blur(14px);border:1px solid rgba(139,92,246,0.35);border-radius:12px;padding:12px 20px;font-family:'Courier New',monospace;font-size:11px;">
-            <span style="color:#9ca3af;">GEOMETRY SCALE: <strong style="color:#c084fc;" id="p3-bh-warp">2.40 SU</strong></span>
-            <span style="color:#9ca3af;">LOCAL TIDAL CURVATURE: <strong style="color:#67e8f9;" id="p3-bh-flux">0.00 SU⁻²</strong></span>
+            <span style="color:#9ca3af;"><span id="p3-readout-label-a">GEOMETRY SCALE:</span> <strong style="color:#c084fc;" id="p3-bh-warp">2.40 SU</strong></span>
+            <span style="color:#9ca3af;"><span id="p3-readout-label-b">LOCAL TIDAL CURVATURE:</span> <strong style="color:#67e8f9;" id="p3-bh-flux">0.00 SU⁻²</strong></span>
             <span id="p3-transit-status" style="color:#34d399;animation:pulse 2s ease infinite;">&#9679; EXOTIC STRESS: THEORY-DEPENDENT</span>
+            <label id="p3-observer-speed-wrap" style="display:none;width:100%;color:#9ca3af;text-align:center;">
+                OBSERVER SPEED β: <strong id="p3-observer-speed-value" style="color:#67e8f9;">0.34c</strong>
+                <input id="p3-observer-speed" type="range" min="1" max="12" step="0.1" value="5.2"
+                    oninput="document.getElementById('slider-warp-factor').value=this.value;document.getElementById('p3-observer-speed-value').textContent=(Math.min(.88,((this.value-1)/11)*.88)).toFixed(2)+'c';"
+                    style="display:block;width:min(420px,70vw);margin:8px auto 0;accent-color:#22d3ee;cursor:pointer;">
+            </label>
             <small id="p3-model-note" style="width:100%;text-align:center;color:#64748b;font-size:9px;letter-spacing:1px;">MORRIS–THORNE / ELLIS-THROAT MODEL • QUANTUM-ENERGY EFFECTS ARE ILLUSTRATIVE • NO VERIFIED ANTIGRAVITY DRIVE</small>
         </div>
 
@@ -1189,7 +1199,170 @@
         const p3ThroatRadius = 2.4;
         const p3RedshiftStrength = 0.65;
         let p3QuantumThroatRing = null;
+        const p3MetricSupportShells = [];
         const p3FluxParticles = [];
+        let p3ObserverMode = false;
+        let p3ObserverGroup = null;
+        let p3ObserverLens = null;
+        let p3ObserverSource = null;
+        let p3ObserverImages = [];
+        let p3ObserverRays = [];
+        let p3ObserverClock = 0;
+        let p3ObserverBeta = 0;
+
+        function p3MakePlanetTexture() {
+            const canvas = document.createElement('canvas'); canvas.width = 768; canvas.height = 384;
+            const ctx = canvas.getContext('2d');
+            const ocean = ctx.createLinearGradient(0, 0, 0, 384);
+            ocean.addColorStop(0, '#08233f'); ocean.addColorStop(0.5, '#126b9c'); ocean.addColorStop(1, '#061b36');
+            ctx.fillStyle = ocean; ctx.fillRect(0, 0, 768, 384);
+            const land = [
+                [[105,112],[155,76],[204,91],[221,131],[194,154],[177,198],[135,207],[112,167]],
+                [[256,87],[313,70],[354,93],[347,122],[313,137],[286,122]],
+                [[401,111],[442,80],[499,91],[532,125],[509,159],[471,153],[453,191],[414,170]],
+                [[579,85],[632,95],[670,128],[648,158],[616,146],[594,121]],
+                [[253,238],[294,215],[337,229],[349,269],[324,299],[282,289]],
+                [[490,235],[527,213],[565,230],[556,267],[523,282],[493,263]]
+            ];
+            land.forEach((poly, idx) => {
+                ctx.beginPath(); poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath();
+                ctx.fillStyle = idx % 2 ? '#668e5c' : '#8c9e68'; ctx.fill();
+                ctx.strokeStyle = 'rgba(204,226,171,.55)'; ctx.lineWidth=3; ctx.stroke();
+            });
+            ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=9;
+            for(let i=0;i<8;i++){ctx.beginPath();ctx.ellipse(80+i*94,48+(i%3)*8,55,10,0.08,0,Math.PI*2);ctx.stroke();}
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function p3BuildObserverMode() {
+            if (p3ObserverGroup || !p3Scene3D) return;
+            p3ObserverGroup = new THREE.Group(); p3ObserverGroup.visible = false; p3Scene3D.add(p3ObserverGroup);
+            const lens = new THREE.Group(); lens.position.set(0, 0, -15); p3ObserverGroup.add(lens); p3ObserverLens = lens;
+            const black = new THREE.Mesh(new THREE.SphereGeometry(1.42, 48, 36), new THREE.MeshBasicMaterial({color:0x000000})); lens.add(black);
+            const einstein = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.045, 10, 128), new THREE.MeshBasicMaterial({color:0x75e9ff,transparent:true,opacity:.84})); einstein.rotation.x = Math.PI/2; lens.add(einstein);
+            const glow = new THREE.Mesh(new THREE.SphereGeometry(2.12, 32, 24), new THREE.MeshBasicMaterial({color:0x1c55aa,transparent:true,opacity:.08,side:THREE.BackSide})); lens.add(glow);
+
+            const planetGeo = new THREE.SphereGeometry(2.0, 40, 32);
+            const planetMat = new THREE.MeshStandardMaterial({map:p3MakePlanetTexture(),roughness:.88,metalness:0});
+            const planet = new THREE.Mesh(planetGeo, planetMat); planet.position.set(1.35, .35, -76); p3ObserverGroup.add(planet); p3ObserverSource = planet;
+            const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(2.12,32,24), new THREE.MeshBasicMaterial({color:0x4fcfff,transparent:true,opacity:.22,side:THREE.BackSide})); planet.add(atmosphere);
+            const sun = new THREE.PointLight(0xffd5a1, 240, 120); sun.position.set(-10, 8, -35); p3ObserverGroup.add(sun);
+
+            const imageGroup = new THREE.Group(); p3Camera3D.add(imageGroup);
+            const imageGeo = new THREE.SphereGeometry(1, 36, 28);
+            const imageMats = [new THREE.MeshBasicMaterial({map:planetMat.map, color:0xb9f5ff}), new THREE.MeshBasicMaterial({map:planetMat.map, color:0xffd898})];
+            const colors = [0x37e8ff, 0xffbd59];
+            for(let i=0;i<2;i++) {
+                const group = new THREE.Group(); group.userData.side = i===0 ? -1 : 1; imageGroup.add(group);
+                const image = new THREE.Mesh(imageGeo, imageMats[i]); group.add(image);
+                const halo = new THREE.Mesh(new THREE.TorusGeometry(1.18,.025,8,64),new THREE.MeshBasicMaterial({color:colors[i],transparent:true,opacity:.9})); halo.rotation.x=.25; group.add(halo);
+                p3ObserverImages.push(group);
+            }
+            const lineColors=[0x42eaff,0xffbd59];
+            for(let i=0;i<2;i++) {
+                const positions = new Float32Array(99*3);
+                const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+                const line = new THREE.Line(geometry,new THREE.LineBasicMaterial({color:lineColors[i],transparent:true,opacity:.63}));
+                p3ObserverGroup.add(line); p3ObserverRays.push(line);
+            }
+            const labelCanvas=document.createElement('canvas'); labelCanvas.width=512; labelCanvas.height=96;
+            const lctx=labelCanvas.getContext('2d'); lctx.fillStyle='#a5f3fc'; lctx.font='bold 25px monospace'; lctx.textAlign='center'; lctx.fillText('SAME DISTANT SOURCE • TWO LIGHT PATHS',256,40);
+            const label=new THREE.Mesh(new THREE.PlaneGeometry(8,1.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(labelCanvas),transparent:true,depthWrite:false}));
+            label.position.set(0,-3.5,-8); p3Camera3D.add(label);
+            p3ObserverGroup.userData.imageGroup=imageGroup; p3ObserverGroup.userData.label=label;
+            p3ObserverGroup.userData.imageGroup.visible=false; label.visible=false;
+        }
+
+        function p3UpdateObserverFrame(t) {
+            p3ObserverClock += 0.016;
+            const raw = Math.max(0, Math.min(1, p3ObserverClock / 70));
+            const speed = Math.max(1, Math.min(12, parseFloat(p5WarpSlider.value) || 1));
+            p3ObserverBeta = Math.min(.88, ((speed - 1) / 11) * .88);
+            const gamma = 1 / Math.sqrt(1 - p3ObserverBeta * p3ObserverBeta);
+            const doppler = Math.sqrt((1 + p3ObserverBeta) / (1 - p3ObserverBeta));
+            p3Camera3D.position.set(Math.sin(t*.13)*.11, Math.sin(t*.09)*.08, 12 - raw*17);
+            p3Camera3D.rotation.set(0,0,Math.sin(t*.1)*.008);
+            p3ObserverLens.rotation.y=t*.012;
+            p3ObserverSource.rotation.y=t*.025;
+            p3ObserverSource.rotation.x=.18;
+            const lensZ=p3ObserverLens.position.z, sourceZ=p3ObserverSource.position.z, cameraZ=p3Camera3D.position.z;
+            const dl=Math.max(1, cameraZ-lensZ), ds=Math.max(dl+1,cameraZ-sourceZ), dls=Math.max(1,ds-dl);
+            const betaAngle=p3ObserverSource.position.x/ds;
+            const thetaE=Math.sqrt(4*.72*dls/(dl*ds));
+            const root=Math.sqrt(betaAngle*betaAngle+4*thetaE*thetaE);
+            const theta=[(betaAngle-root)/2,(betaAngle+root)/2];
+            // Illustrative strong-lens time delay for a normalized 10^9-solar-mass lens.
+            const y=Math.abs(betaAngle)/Math.max(thetaE,1e-6), rootY=Math.sqrt(y*y+4);
+            const delaySeconds=19700*(.5*y*rootY+Math.log((rootY+y)/Math.max(rootY-y,1e-8)));
+            const focal=8/Math.tan(THREE.MathUtils.degToRad(p3Camera3D.fov/2))/8;
+            p3ObserverImages.forEach((img,i)=>{
+                let apparent=theta[i];
+                const cos=Math.cos(apparent);
+                apparent=Math.acos(THREE.MathUtils.clamp((cos+p3ObserverBeta)/(1+p3ObserverBeta*cos),-1,1));
+                if(theta[i]<0) apparent=-apparent;
+                img.position.set(apparent*focal*8, (i===0?-.28:.28), -8);
+                const scale=.32 + .14*Math.min(gamma/2,1.2);
+                img.scale.setScalar(scale);
+                img.rotation.y=t*.018*(i===0?1:-1);
+            });
+            p3Camera3D.updateMatrixWorld(true);
+            const endpoints=p3ObserverImages.map(img=>img.getWorldPosition(new THREE.Vector3()));
+            p3ObserverRays.forEach((line,i)=>{
+                const pos=line.geometry.attributes.position.array;
+                const start=endpoints[i], bend=new THREE.Vector3((i===0?-1:1)*2.15,(i===0?-.45:.45),lensZ+.25);
+                const second=new THREE.Vector3((i===0?-1:1)*.9,(i===0?-.2:.2),lensZ-.3);
+                const end=p3ObserverSource.position.clone();
+                for(let j=0;j<=32;j++){
+                    const u=j/32; let p;
+                    if(u<.48){const v=u/.48; p=start.clone().multiplyScalar((1-v)*(1-v)).addScaledVector(bend,2*(1-v)*v).addScaledVector(second,v*v);}
+                    else {const v=(u-.48)/.52; p=second.clone().multiplyScalar((1-v)*(1-v)).addScaledVector(new THREE.Vector3((i===0?-1:1)*1.6,.12,lensZ-4),2*(1-v)*v).addScaledVector(end,v*v);}
+                    pos[j*3]=p.x; pos[j*3+1]=p.y; pos[j*3+2]=p.z;
+                }
+                line.geometry.attributes.position.needsUpdate=true; line.geometry.computeBoundingSphere();
+            });
+            const sep=Math.abs(endpoints[0].x-endpoints[1].x);
+            document.getElementById('p3-hud-dilation').textContent=gamma.toFixed(2)+' γ';
+            document.getElementById('p3-bh-warp').textContent=sep.toFixed(2)+'°';
+            document.getElementById('p3-bh-flux').textContent=doppler.toFixed(2)+'×';
+            const delayLabel=delaySeconds<3600?(delaySeconds/60).toFixed(0)+' min':(delaySeconds/3600).toFixed(1)+' h';
+            document.getElementById('p3-transit-status').innerHTML='&#9679; TWO IMAGE PATHS • ONE SOURCE • Δt '+delayLabel+' • β '+p3ObserverBeta.toFixed(2);
+            p3Stars3D.rotation.z=t*.003*(1+p3ObserverBeta*3);
+        }
+
+        function p3ToggleObserverMode() {
+            if (!p3InSingularity || !window.THREE) return;
+            p3Init3DScene(); p3BuildObserverMode();
+            p3ObserverMode=!p3ObserverMode;
+            const button=document.getElementById('p3-observer-toggle');
+            if(p3ObserverMode){
+                clearInterval(p3PhaseTimer); p3ObserverClock=0;
+                p3BlackHole3D.visible=false; p3Wormhole3D.visible=false; p3ObserverGroup.visible=true;
+                p3ObserverGroup.userData.imageGroup.visible=true; p3ObserverGroup.userData.label.visible=true;
+                const observerSpeed=parseFloat(p5WarpSlider.value)||5.2;
+                document.getElementById('p3-observer-speed').value=observerSpeed;
+                document.getElementById('p3-observer-speed-value').textContent=(Math.min(.88,((observerSpeed-1)/11)*.88)).toFixed(2)+'c';
+                document.getElementById('p3-hud-time-label').textContent='OBSERVER LORENTZ';
+                document.getElementById('p3-hud-transit').textContent='RELATIVISTIC FLIGHT // STRONG-LENS VIEW';
+                document.getElementById('p3-singularity-title').textContent='RELATIVISTIC ARRIVAL VIEW';
+                document.getElementById('p3-singularity-sub').textContent='SAME DISTANT OBJECT • TWO LENSED IMAGES • LIGHT-TRAVEL DELAY';
+                document.getElementById('p3-readout-label-a').textContent='IMAGE SEPARATION:';
+                document.getElementById('p3-readout-label-b').textContent='FORWARD DOPPLER:';
+                document.getElementById('p3-model-note').textContent='SPECIAL RELATIVITY + GRAVITATIONAL LENSING • ONE SOURCE, TWO APPARENT IMAGES • NO ANTIGRAVITY CLAIM';
+                document.getElementById('p3-observer-speed-wrap').style.display='block';
+                button.innerHTML='<i class="fa-solid fa-arrow-rotate-left" style="margin-right:4px;"></i> RETURN TO TRANSIT';
+            } else {
+                p3ObserverGroup.visible=false;
+                p3ObserverGroup.userData.imageGroup.visible=false; p3ObserverGroup.userData.label.visible=false;
+                document.getElementById('p3-hud-time-label').textContent='GRAVITATIONAL DILATION:';
+                document.getElementById('p3-readout-label-a').textContent='GEOMETRY SCALE:';
+                document.getElementById('p3-readout-label-b').textContent='LOCAL TIDAL CURVATURE:';
+                document.getElementById('p3-model-note').textContent='MORRIS–THORNE / ELLIS-THROAT MODEL • QUANTUM-ENERGY EFFECTS ARE ILLUSTRATIVE • NO VERIFIED ANTIGRAVITY DRIVE';
+                document.getElementById('p3-observer-speed-wrap').style.display='none';
+                button.innerHTML='<i class="fa-solid fa-eye" style="margin-right:4px;"></i> RELATIVISTIC OBSERVER';
+                p3SetPhase(p3PhaseIdx);
+                p3PhaseTimer=setInterval(()=>{p3PhaseIdx=(p3PhaseIdx+1)%p3Phases.length;p3SetPhase(p3PhaseIdx);},7600);
+            }
+        }
 
         function p3WormholeRadius(l) {
             // Ellis/Morris–Thorne spatial slice: r(l)^2 = l^2 + b0^2, scaled to simulation units.
@@ -1219,6 +1392,7 @@
             p3Scene3D.fog = new THREE.FogExp2(0x020617, 0.004);
             p3Camera3D = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, 0.1, 260);
             p3Camera3D.position.set(0, 0, 12);
+            p3Scene3D.add(p3Camera3D);
             p3Renderer3D = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
             p3Renderer3D.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
             p3Renderer3D.setSize(innerWidth, innerHeight);
@@ -1275,6 +1449,13 @@
             );
             p3QuantumThroatRing.position.z = 0.08;
             p3Wormhole3D.add(p3QuantumThroatRing);
+            // Visual metaphor for the negative-energy stress often invoked in traversable-wormhole metrics.
+            // This is an explicitly speculative field visualization, not a realizable antigravity device.
+            for (let i = 0; i < 5; i++) {
+                const shell = new THREE.Mesh(new THREE.TorusGeometry(p3ThroatRadius * (0.72 + i * 0.12), 0.028, 8, 128),
+                    new THREE.MeshBasicMaterial({ color: i % 2 ? 0xa855f7 : 0x22d3ee, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending }));
+                shell.position.z = 0.08; shell.rotation.set(i * 0.17, i * 0.29, i * 0.21); p3Wormhole3D.add(shell); p3MetricSupportShells.push(shell);
+            }
             for (let h = 0; h < 8; h++) {
                 const points = [];
                 for (let j = 0; j <= 160; j++) {
@@ -1357,6 +1538,7 @@
             document.getElementById('p3-hud-dilation').textContent = ph.dilation;
             document.getElementById('p3-hud-transit').textContent = ph.hud || ('SINGULARITY TRANSIT IN PROGRESS // ' + ph.title);
             document.getElementById('p3-transit-status').innerHTML = '&#9679; ' + (ph.status || 'TRANSIT SYSTEMS NOMINAL');
+            if (ph.mode.indexOf('wormhole') === 0) document.getElementById('p3-transit-status').innerHTML = '&#9679; ' + (ph.status || 'THROAT TRANSIT') + ' • EXOTIC-STRESS SUPPORT IS THEORETICAL';
             p3PhaseElapsed = 0;
 
             // Update bottom bar with warp data
@@ -1366,6 +1548,7 @@
         }
 
         function p3ExitSingularity() {
+            if (p3ObserverMode) p3ToggleObserverMode();
             p3InSingularity = false;
             clearInterval(p3PhaseTimer);
             if (p3SingularityRAF) cancelAnimationFrame(p3SingularityRAF);
@@ -1380,6 +1563,10 @@
             const phase = p3Phases[p3PhaseIdx];
             if (p3Renderer3D) {
                 const t = p3Angle;
+                if (p3ObserverMode) {
+                    p3UpdateObserverFrame(t);
+                    p3Renderer3D.render(p3Scene3D, p3Camera3D);
+                } else {
                 const portalPhase = phase.mode.indexOf('wormhole') === 0;
                 const normalizedPhase = Math.min(p3PhaseElapsed / 456, 1);
                 const easedPhase = normalizedPhase * normalizedPhase;
@@ -1402,6 +1589,7 @@
                     const quantumPulse = 0.5 + 0.5 * Math.sin(t * 1.7);
                     p3QuantumThroatRing.material.opacity = 0.48 + quantumPulse * 0.44;
                     p3QuantumThroatRing.scale.setScalar(1 + quantumPulse * 0.012);
+                    p3MetricSupportShells.forEach((shell, i) => { shell.material.opacity = 0.12 + quantumPulse * 0.22; shell.rotation.z += 0.0015 * (i % 2 ? -1 : 1); });
                     const warpSpeed = 1 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.01;
                     for (const particle of p3FluxParticles) {
                         particle.position.z -= particle.userData.speed * warpSpeed;
@@ -1423,6 +1611,7 @@
                 p3PhaseElapsed += 1 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.01;
                 p3UpdatePhysicsReadout(phase);
                 p3Renderer3D.render(p3Scene3D, p3Camera3D);
+                }
             }
             p3Angle += 0.028;
             p3SingularityRAF = requestAnimationFrame(p3RenderLoop);
