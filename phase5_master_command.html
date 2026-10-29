@@ -1115,6 +1115,12 @@
 
         const p3Phases = [
             {
+                title: "ACCRETION DISK APPROACH",
+                sub: "BENDING SPACETIME LIGHT RAYS \u2022 CROSSING EVENT HORIZON BOUNDARY",
+                mode: "accretion",
+                dilation: "14.8x"
+            },
+            {
                 title: "EVENT HORIZON PLUNGE",
                 sub: "PHOTON SPHERE DISTORTION \u2022 TIME DILATION DIVERGENCE",
                 mode: "horizon",
@@ -1208,6 +1214,8 @@
 
             if (phase.mode === 'horizon') {
                 p3DrawEventHorizon(ctx, cx, cy);
+            } else if (phase.mode === 'accretion') {
+                p3DrawAccretionDisk(ctx, cx, cy);
             } else if (phase.mode === 'wormhole') {
                 p3DrawWormhole(ctx, cx, cy);
             } else {
@@ -1216,6 +1224,109 @@
 
             p3Angle += 0.028;
             p3SingularityRAF = requestAnimationFrame(p3RenderLoop);
+        }
+
+        // ── ACCRETION DISK APPROACH (matches the supplied transit frame) ────
+        function p3DrawAccretionDisk(ctx, cx, cy) {
+            const t = p3Angle;
+
+            // Deep-space starfield and a warm gravitational lensing halo.
+            if (Math.floor(t * 10) % 3 === 0) {
+                const sx = Math.random() * ctx.canvas.width;
+                const sy = Math.random() * ctx.canvas.height;
+                ctx.fillStyle = `rgba(255,255,255,${0.35 + Math.random() * 0.65})`;
+                ctx.beginPath();
+                ctx.arc(sx, sy, Math.random() * 1.5 + 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const outer = ctx.createRadialGradient(cx, cy, 65, cx, cy, 370);
+            outer.addColorStop(0, 'rgba(255,135,0,0)');
+            outer.addColorStop(0.43, 'rgba(255,150,0,0.32)');
+            outer.addColorStop(0.68, 'rgba(139,92,246,0.28)');
+            outer.addColorStop(0.82, 'rgba(6,182,212,0.17)');
+            outer.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = outer;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 370, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glowing accretion rings, viewed at a steep angle around the core.
+            for (let i = 0; i < 20; i++) {
+                const f = i / 19;
+                const rx = 95 + f * 185;
+                const ry = 28 + f * 62;
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(t * 0.18 + f * Math.PI * 0.22);
+                ctx.strokeStyle = i % 4 === 0
+                    ? `rgba(251,191,36,${0.36 + f * 0.46})`
+                    : `rgba(249,115,22,${0.18 + f * 0.34})`;
+                ctx.lineWidth = 1.2 + f * 1.5;
+                ctx.shadowBlur = 12 + f * 16;
+                ctx.shadowColor = i % 4 === 0 ? '#fbbf24' : '#f97316';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Twisted golden field lines trace the warped torus across the black hole.
+            const major = 145;
+            const minor = 61;
+            const tilt = -0.31;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(tilt + Math.sin(t * 0.24) * 0.08);
+            for (let family = 0; family < 2; family++) {
+                const count = family === 0 ? 22 : 28;
+                for (let j = 0; j < count; j++) {
+                    const linePhase = (j / count) * Math.PI * 2 + t * (family === 0 ? 0.12 : -0.09);
+                    ctx.beginPath();
+                    for (let k = 0; k <= 180; k++) {
+                        const u = (k / 180) * Math.PI * 2;
+                        const v = family === 0 ? linePhase : (j / count) * Math.PI * 2;
+                        const tube = minor * Math.cos(v + u * 0.54);
+                        const x = (major + tube) * Math.cos(u);
+                        const y = (major + tube) * Math.sin(u) * 0.48 + minor * Math.sin(v + u * 0.54) * 0.74;
+                        const px = x * Math.cos(t * 0.11) - y * Math.sin(t * 0.11);
+                        const py = x * Math.sin(t * 0.11) + y * Math.cos(t * 0.11);
+                        if (k === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    const alpha = 0.48 + 0.38 * Math.abs(Math.sin(linePhase + t));
+                    ctx.strokeStyle = `rgba(251,191,36,${alpha})`;
+                    ctx.lineWidth = family === 0 ? 1.5 : 1.15;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+
+            // Purple-cyan photon glow and the dark event-horizon core.
+            const inner = ctx.createRadialGradient(cx, cy, 32, cx, cy, 154);
+            inner.addColorStop(0, 'rgba(0,0,0,0)');
+            inner.addColorStop(0.56, 'rgba(139,92,246,0.34)');
+            inner.addColorStop(0.82, 'rgba(6,182,212,0.24)');
+            inner.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = inner;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 154, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.shadowBlur = 48;
+            ctx.shadowColor = '#8B5CF6';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 55, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 57, 0, Math.PI * 2);
+            ctx.stroke();
         }
 
         // ── EVENT HORIZON PLUNGE (exactly as Phase 5 screenshot) ────────────
