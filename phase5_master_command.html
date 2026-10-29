@@ -425,9 +425,10 @@
 
         <!-- BOTTOM STATUS BAR -->
         <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;background:rgba(2,6,23,0.82);backdrop-filter:blur(14px);border:1px solid rgba(139,92,246,0.35);border-radius:12px;padding:12px 20px;font-family:'Courier New',monospace;font-size:11px;">
-            <span style="color:#9ca3af;">THROAT RADIUS: <strong style="color:#c084fc;" id="p3-bh-warp">0.42 AU</strong></span>
-            <span style="color:#9ca3af;">RELATIVE VELOCITY: <strong style="color:#67e8f9;" id="p3-bh-flux">0.00 c</strong></span>
-            <span id="p3-transit-status" style="color:#34d399;animation:pulse 2s ease infinite;">&#9679; TRANSIT SYSTEMS NOMINAL</span>
+            <span style="color:#9ca3af;">GEOMETRY SCALE: <strong style="color:#c084fc;" id="p3-bh-warp">2.40 SU</strong></span>
+            <span style="color:#9ca3af;">LOCAL TIDAL CURVATURE: <strong style="color:#67e8f9;" id="p3-bh-flux">0.00 SU⁻²</strong></span>
+            <span id="p3-transit-status" style="color:#34d399;animation:pulse 2s ease infinite;">&#9679; EXOTIC STRESS: THEORY-DEPENDENT</span>
+            <small style="width:100%;text-align:center;color:#64748b;font-size:9px;letter-spacing:1px;">MORRIS–THORNE / ELLIS-THROAT MODEL • QUANTUM-ENERGY EFFECTS ARE ILLUSTRATIVE • NO VERIFIED ANTIGRAVITY DRIVE</small>
         </div>
 
         <style>
@@ -1119,25 +1120,25 @@
                 title: "ACCRETION DISK APPROACH",
                 sub: "BENDING SPACETIME LIGHT RAYS \u2022 CROSSING EVENT HORIZON BOUNDARY",
                 mode: "accretion",
-                dilation: "14.8x"
+                dilation: "1.00x"
             },
             {
                 title: "EVENT HORIZON PLUNGE",
                 sub: "PHOTON SPHERE DISTORTION \u2022 TIME DILATION DIVERGENCE",
                 mode: "horizon",
-                dilation: "14.8x"
+                dilation: "1.00x"
             },
             {
                 title: "SINGULARITY CORE APPROACH",
                 sub: "SPACETIME TOPOLOGY INVERSION \u2022 QUANTUM FOAM DETECTED",
                 mode: "singularity",
-                dilation: "UNDEFINED"
+                dilation: "MODEL"
             },
             {
                 title: "WORMHOLE APPROACH",
                 sub: "THROAT LOCK ACQUIRED \u2022 DESTINATION BEACON CONFIRMED",
                 mode: "wormholeApproach",
-                dilation: "18.2x",
+                dilation: "MODEL",
                 hud: "TRANSIT IN PROGRESS // APPROACHING WORMHOLE MOUTH",
                 status: "MOUTH LOCKED • CLOSING RANGE"
             },
@@ -1145,7 +1146,7 @@
                 title: "CROSSING THE THROAT",
                 sub: "LENSING FIELD ENVELOPE ENGAGED \u2022 INBOUND CROSSING",
                 mode: "wormholeEntry",
-                dilation: "42.6x",
+                dilation: "MODEL",
                 hud: "TRANSIT IN PROGRESS // CROSSING THE THROAT",
                 status: "THROAT CROSSING • FIELD STABLE"
             },
@@ -1153,7 +1154,7 @@
                 title: "WORMHOLE MANIFOLD TRANSIT",
                 sub: "HYPERSPACE TUNNEL FLIGHT \u2022 DESTINATION INBOUND",
                 mode: "wormholeInside",
-                dilation: "\u221E",
+                dilation: "MODEL",
                 hud: "TRANSIT IN PROGRESS // INSIDE THE WORMHOLE",
                 status: "INTERNAL TRANSIT • NAV BEACON TRACKING"
             },
@@ -1161,7 +1162,7 @@
                 title: "WORMHOLE EXIT",
                 sub: "DESTINATION HORIZON VISIBLE \u2022 OUTBOUND EMERGENCE",
                 mode: "wormholeExit",
-                dilation: "3.1x",
+                dilation: "MODEL",
                 hud: "TRANSIT IN PROGRESS // DESTINATION EMERGENCE",
                 status: "EXIT GATE AHEAD • EMERGING"
             }
@@ -1178,6 +1179,28 @@
         let p3Stars3D = null;
         let p3TunnelTravel = 0;
         let p3PhaseElapsed = 0;
+        const p3ThroatRadius = 2.4;
+        const p3RedshiftStrength = 0.65;
+
+        function p3WormholeRadius(l) {
+            // Ellis/Morris–Thorne spatial slice: r(l)^2 = l^2 + b0^2, scaled to simulation units.
+            return Math.sqrt(Math.pow(0.29 * l, 2) + p3ThroatRadius * p3ThroatRadius);
+        }
+
+        function p3UpdatePhysicsReadout(phase) {
+            const l = phase.mode.indexOf('wormhole') === 0 ? p3Camera3D.position.z : (p3Camera3D.position.z - p3BlackHole3D.position.z);
+            const rho = phase.mode.indexOf('wormhole') === 0 ? Math.sqrt(l * l + p3ThroatRadius * p3ThroatRadius) : Math.max(Math.abs(l), 1.5);
+            const lapse = Math.exp(-p3RedshiftStrength / rho);
+            const dilation = 1 / lapse;
+            const tidal = (p3ThroatRadius * p3ThroatRadius) / Math.pow(l * l + p3ThroatRadius * p3ThroatRadius, 2);
+            document.getElementById('p3-hud-dilation').textContent = dilation.toFixed(2) + 'x';
+            document.getElementById('p3-bh-warp').textContent = p3WormholeRadius(l).toFixed(2) + ' SU';
+            document.getElementById('p3-bh-flux').textContent = tidal.toExponential(2) + ' SU⁻²';
+            if (phase.mode.indexOf('wormhole') === 0) {
+                const status = phase.status || 'TRANSIT SYSTEMS NOMINAL';
+                document.getElementById('p3-transit-status').innerHTML = '&#9679; ' + status + ' • LAPSE ' + lapse.toFixed(2);
+            }
+        }
 
         function p3Init3DScene() {
             if (p3Renderer3D) return;
@@ -1231,16 +1254,16 @@
             // A traversable manifold: nested 3D throat rings plus helical field lines.
             p3Wormhole3D = new THREE.Group(); p3Scene3D.add(p3Wormhole3D);
             const ringColors = [0x13dcff, 0x9270ff, 0x44aaff, 0xbd54ff];
-            for (let i = 0; i < 36; i++) {
-                const z = 8 - i * 2.15;
-                const radius = 1.0 + (i / 35) * 7.1;
+            for (let i = 0; i < 49; i++) {
+                const z = 28 - i * (56 / 48);
+                const radius = p3WormholeRadius(z);
                 const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.027 + (i % 4) * 0.006, 8, 96), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length], transparent: true, opacity: 0.62 + 0.25 * Math.sin(i * 0.3) }));
                 mesh.position.z = z; mesh.scale.y = 0.94; mesh.rotation.z = i * 0.035; p3Wormhole3D.add(mesh);
             }
             for (let h = 0; h < 8; h++) {
                 const points = [];
                 for (let j = 0; j <= 160; j++) {
-                    const f = j / 160, z = 8 - f * 76, radius = 0.65 + f * 7.0;
+                    const f = j / 160, z = 28 - f * 56, radius = p3WormholeRadius(z) * 0.98;
                     const a = f * Math.PI * 8 + h * Math.PI / 4;
                     points.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, z));
                 }
@@ -1249,21 +1272,22 @@
                 p3Wormhole3D.add(line);
             }
             for (let i = 0; i < 120; i++) {
-                const a = Math.random() * Math.PI * 2, z = -Math.random() * 74;
-                const r = 1.1 + Math.random() * 6.2;
+                const a = Math.random() * Math.PI * 2, z = 28 - Math.random() * 56;
+                const r = p3WormholeRadius(z) * (0.72 + Math.random() * 0.26);
                 const particle = new THREE.Mesh(new THREE.SphereGeometry(0.035 + Math.random() * 0.04, 6, 6), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length] }));
                 particle.position.set(Math.cos(a) * r, Math.sin(a) * r, z); p3Wormhole3D.add(particle);
             }
             // Distinct, luminous entrance and destination gates give the tunnel a readable journey arc.
-            const entranceGate = new THREE.Group(); entranceGate.position.z = 8.4; p3Wormhole3D.add(entranceGate);
-            const entranceRim = new THREE.Mesh(new THREE.TorusGeometry(8.6, 0.16, 20, 180), new THREE.MeshBasicMaterial({ color: 0x21e6ff, transparent: true, opacity: 0.9 }));
+            const gateRadius = p3WormholeRadius(28);
+            const entranceGate = new THREE.Group(); entranceGate.position.z = 28; p3Wormhole3D.add(entranceGate);
+            const entranceRim = new THREE.Mesh(new THREE.TorusGeometry(gateRadius, 0.16, 20, 180), new THREE.MeshBasicMaterial({ color: 0x21e6ff, transparent: true, opacity: 0.9 }));
             entranceGate.add(entranceRim);
-            const entranceInner = new THREE.Mesh(new THREE.TorusGeometry(7.95, 0.07, 12, 160), new THREE.MeshBasicMaterial({ color: 0xb866ff, transparent: true, opacity: 0.82 }));
+            const entranceInner = new THREE.Mesh(new THREE.TorusGeometry(gateRadius * 0.92, 0.07, 12, 160), new THREE.MeshBasicMaterial({ color: 0xb866ff, transparent: true, opacity: 0.82 }));
             entranceInner.rotation.z = 0.08; entranceGate.add(entranceInner);
-            const exitGate = new THREE.Group(); exitGate.position.z = -68; p3Wormhole3D.add(exitGate);
-            const exitRim = new THREE.Mesh(new THREE.TorusGeometry(8.2, 0.2, 20, 180), new THREE.MeshBasicMaterial({ color: 0xb5faff, transparent: true, opacity: 0.95 }));
+            const exitGate = new THREE.Group(); exitGate.position.z = -28; p3Wormhole3D.add(exitGate);
+            const exitRim = new THREE.Mesh(new THREE.TorusGeometry(gateRadius, 0.2, 20, 180), new THREE.MeshBasicMaterial({ color: 0xb5faff, transparent: true, opacity: 0.95 }));
             exitGate.add(exitRim);
-            const exitGlow = new THREE.Mesh(new THREE.CircleGeometry(7.9, 96), new THREE.MeshBasicMaterial({ color: 0x4bbdff, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }));
+            const exitGlow = new THREE.Mesh(new THREE.CircleGeometry(gateRadius * 0.92, 96), new THREE.MeshBasicMaterial({ color: 0x4bbdff, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }));
             exitGlow.position.z = -0.12; exitGate.add(exitGlow);
             const exitBeacon = new THREE.PointLight(0x86dfff, 8, 36); exitBeacon.position.z = -3; exitGate.add(exitBeacon);
             window.addEventListener('resize', p3Resize3D);
@@ -1319,8 +1343,8 @@
 
             // Update bottom bar with warp data
             const wv = parseFloat(p5WarpSlider.value);
-            document.getElementById('p3-bh-warp').textContent = wv.toFixed(1) + ' W';
-            document.getElementById('p3-bh-flux').textContent = '-' + (wv * 0.357e18).toExponential(2) + ' kg';
+            document.getElementById('p3-bh-warp').textContent = p3ThroatRadius.toFixed(2) + ' SU';
+            document.getElementById('p3-bh-flux').textContent = '0.00 SU⁻²';
         }
 
         function p3ExitSingularity() {
@@ -1345,14 +1369,14 @@
                 p3BlackHole3D.visible = !portalPhase;
                 if (portalPhase) {
                     if (phase.mode === 'wormholeApproach') {
-                        p3Camera3D.position.set(Math.sin(t * 0.2) * 0.18, Math.sin(t * 0.15) * 0.12, 25 - easedPhase * 11);
+                        p3Camera3D.position.set(Math.sin(t * 0.2) * 0.18, Math.sin(t * 0.15) * 0.12, 50 - easedPhase * 20);
                     } else if (phase.mode === 'wormholeEntry') {
-                        p3Camera3D.position.set(Math.sin(t * 0.3) * 0.12, Math.cos(t * 0.2) * 0.1, 14 - easedPhase * 8);
+                        p3Camera3D.position.set(Math.sin(t * 0.3) * 0.12, Math.cos(t * 0.2) * 0.1, 30 - easedPhase * 10);
                     } else if (phase.mode === 'wormholeInside') {
-                        p3TunnelTravel = easedPhase * 58;
-                        p3Camera3D.position.set(Math.sin(t * 0.42) * 0.24, Math.cos(t * 0.33) * 0.2, 6 - p3TunnelTravel);
+                        p3TunnelTravel = easedPhase * 48;
+                        p3Camera3D.position.set(Math.sin(t * 0.42) * 0.24, Math.cos(t * 0.33) * 0.2, 20 - p3TunnelTravel);
                     } else {
-                        p3Camera3D.position.set(Math.sin(t * 0.24) * 0.14, Math.sin(t * 0.18) * 0.12, -51 - easedPhase * 30);
+                        p3Camera3D.position.set(Math.sin(t * 0.24) * 0.14, Math.sin(t * 0.18) * 0.12, -28 - easedPhase * 22);
                     }
                     p3Camera3D.rotation.z = Math.sin(t * 0.19) * 0.025;
                     p3Wormhole3D.rotation.z = t * 0.018;
@@ -1367,6 +1391,7 @@
                 }
                 p3Stars3D.rotation.z = t * 0.003;
                 p3PhaseElapsed += 1 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.01;
+                p3UpdatePhysicsReadout(phase);
                 p3Renderer3D.render(p3Scene3D, p3Camera3D);
             }
             p3Angle += 0.028;
