@@ -398,7 +398,7 @@
         <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;background:rgba(2,6,23,0.82);backdrop-filter:blur(14px);border:1px solid rgba(6,182,212,0.35);border-radius:12px;padding:14px 20px;">
             <div style="display:flex;align-items:center;gap:12px;">
                 <span style="width:12px;height:12px;border-radius:50%;background:#ef4444;display:inline-block;animation:ping 1s cubic-bezier(0,0,0.2,1) infinite;"></span>
-                <span style="font-family:'Courier New',monospace;font-size:11px;color:#67e8f9;font-weight:700;letter-spacing:2px;">SINGULARITY TRANSIT IN PROGRESS // EVENT HORIZON PLUNGE</span>
+                <span id="p3-hud-transit" style="font-family:'Courier New',monospace;font-size:11px;color:#67e8f9;font-weight:700;letter-spacing:2px;">SINGULARITY TRANSIT IN PROGRESS // EVENT HORIZON PLUNGE</span>
             </div>
             <div style="display:flex;align-items:center;gap:20px;">
                 <span style="font-family:'Courier New',monospace;font-size:11px;color:#d1d5db;">
@@ -425,9 +425,9 @@
 
         <!-- BOTTOM STATUS BAR -->
         <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;background:rgba(2,6,23,0.82);backdrop-filter:blur(14px);border:1px solid rgba(139,92,246,0.35);border-radius:12px;padding:12px 20px;font-family:'Courier New',monospace;font-size:11px;">
-            <span style="color:#9ca3af;">WARP CURVATURE: <strong style="color:#c084fc;" id="p3-bh-warp">12.0 W</strong></span>
-            <span style="color:#9ca3af;">EXOTIC MASS FLUX: <strong style="color:#67e8f9;" id="p3-bh-flux">-4.28e18 kg</strong></span>
-            <span style="color:#34d399;animation:pulse 2s ease infinite;">&#9679; TAJMAR FIELD LOCKED</span>
+            <span style="color:#9ca3af;">THROAT RADIUS: <strong style="color:#c084fc;" id="p3-bh-warp">0.42 AU</strong></span>
+            <span style="color:#9ca3af;">RELATIVE VELOCITY: <strong style="color:#67e8f9;" id="p3-bh-flux">0.00 c</strong></span>
+            <span id="p3-transit-status" style="color:#34d399;animation:pulse 2s ease infinite;">&#9679; TRANSIT SYSTEMS NOMINAL</span>
         </div>
 
         <style>
@@ -1128,16 +1128,42 @@
                 dilation: "14.8x"
             },
             {
-                title: "WORMHOLE MANIFOLD TRANSIT",
-                sub: "QUANTUM FLUX HYPERSPACE TUNNEL \u2022 DISPATCHING TO SUBSPACE",
-                mode: "wormhole",
-                dilation: "\u221E"
-            },
-            {
                 title: "SINGULARITY CORE APPROACH",
                 sub: "SPACETIME TOPOLOGY INVERSION \u2022 QUANTUM FOAM DETECTED",
                 mode: "singularity",
                 dilation: "UNDEFINED"
+            },
+            {
+                title: "WORMHOLE APPROACH",
+                sub: "THROAT LOCK ACQUIRED \u2022 DESTINATION BEACON CONFIRMED",
+                mode: "wormholeApproach",
+                dilation: "18.2x",
+                hud: "TRANSIT IN PROGRESS // APPROACHING WORMHOLE MOUTH",
+                status: "MOUTH LOCKED • CLOSING RANGE"
+            },
+            {
+                title: "CROSSING THE THROAT",
+                sub: "LENSING FIELD ENVELOPE ENGAGED \u2022 INBOUND CROSSING",
+                mode: "wormholeEntry",
+                dilation: "42.6x",
+                hud: "TRANSIT IN PROGRESS // CROSSING THE THROAT",
+                status: "THROAT CROSSING • FIELD STABLE"
+            },
+            {
+                title: "WORMHOLE MANIFOLD TRANSIT",
+                sub: "HYPERSPACE TUNNEL FLIGHT \u2022 DESTINATION INBOUND",
+                mode: "wormholeInside",
+                dilation: "\u221E",
+                hud: "TRANSIT IN PROGRESS // INSIDE THE WORMHOLE",
+                status: "INTERNAL TRANSIT • NAV BEACON TRACKING"
+            },
+            {
+                title: "WORMHOLE EXIT",
+                sub: "DESTINATION HORIZON VISIBLE \u2022 OUTBOUND EMERGENCE",
+                mode: "wormholeExit",
+                dilation: "3.1x",
+                hud: "TRANSIT IN PROGRESS // DESTINATION EMERGENCE",
+                status: "EXIT GATE AHEAD • EMERGING"
             }
         ];
 
@@ -1151,6 +1177,7 @@
         let p3Wormhole3D = null;
         let p3Stars3D = null;
         let p3TunnelTravel = 0;
+        let p3PhaseElapsed = 0;
 
         function p3Init3DScene() {
             if (p3Renderer3D) return;
@@ -1227,6 +1254,18 @@
                 const particle = new THREE.Mesh(new THREE.SphereGeometry(0.035 + Math.random() * 0.04, 6, 6), new THREE.MeshBasicMaterial({ color: ringColors[i % ringColors.length] }));
                 particle.position.set(Math.cos(a) * r, Math.sin(a) * r, z); p3Wormhole3D.add(particle);
             }
+            // Distinct, luminous entrance and destination gates give the tunnel a readable journey arc.
+            const entranceGate = new THREE.Group(); entranceGate.position.z = 8.4; p3Wormhole3D.add(entranceGate);
+            const entranceRim = new THREE.Mesh(new THREE.TorusGeometry(8.6, 0.16, 20, 180), new THREE.MeshBasicMaterial({ color: 0x21e6ff, transparent: true, opacity: 0.9 }));
+            entranceGate.add(entranceRim);
+            const entranceInner = new THREE.Mesh(new THREE.TorusGeometry(7.95, 0.07, 12, 160), new THREE.MeshBasicMaterial({ color: 0xb866ff, transparent: true, opacity: 0.82 }));
+            entranceInner.rotation.z = 0.08; entranceGate.add(entranceInner);
+            const exitGate = new THREE.Group(); exitGate.position.z = -68; p3Wormhole3D.add(exitGate);
+            const exitRim = new THREE.Mesh(new THREE.TorusGeometry(8.2, 0.2, 20, 180), new THREE.MeshBasicMaterial({ color: 0xb5faff, transparent: true, opacity: 0.95 }));
+            exitGate.add(exitRim);
+            const exitGlow = new THREE.Mesh(new THREE.CircleGeometry(7.9, 96), new THREE.MeshBasicMaterial({ color: 0x4bbdff, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }));
+            exitGlow.position.z = -0.12; exitGate.add(exitGlow);
+            const exitBeacon = new THREE.PointLight(0x86dfff, 8, 36); exitBeacon.position.z = -3; exitGate.add(exitBeacon);
             window.addEventListener('resize', p3Resize3D);
         }
 
@@ -1262,11 +1301,11 @@
             p3SetPhase(0);
             p3RenderLoop();
 
-            // Auto-cycle through phases every 8 seconds
+            // Keep the full approach → entry → interior flight → exit sequence running until EXIT TRANSIT.
             p3PhaseTimer = setInterval(() => {
                 p3PhaseIdx = (p3PhaseIdx + 1) % p3Phases.length;
                 p3SetPhase(p3PhaseIdx);
-            }, 8000);
+            }, 7600);
         }
 
         function p3SetPhase(idx) {
@@ -1274,6 +1313,9 @@
             document.getElementById('p3-singularity-title').textContent = ph.title;
             document.getElementById('p3-singularity-sub').textContent = ph.sub;
             document.getElementById('p3-hud-dilation').textContent = ph.dilation;
+            document.getElementById('p3-hud-transit').textContent = ph.hud || ('SINGULARITY TRANSIT IN PROGRESS // ' + ph.title);
+            document.getElementById('p3-transit-status').innerHTML = '&#9679; ' + (ph.status || 'TRANSIT SYSTEMS NOMINAL');
+            p3PhaseElapsed = 0;
 
             // Update bottom bar with warp data
             const wv = parseFloat(p5WarpSlider.value);
@@ -1296,13 +1338,22 @@
             const phase = p3Phases[p3PhaseIdx];
             if (p3Renderer3D) {
                 const t = p3Angle;
-                const inTunnel = phase.mode === 'wormhole';
-                p3Wormhole3D.visible = inTunnel;
-                p3BlackHole3D.visible = !inTunnel;
-                if (inTunnel) {
-                    p3TunnelTravel += 0.34 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.025;
-                    if (p3TunnelTravel > 73) p3TunnelTravel = 0;
-                    p3Camera3D.position.set(Math.sin(t * 0.35) * 0.28, Math.cos(t * 0.24) * 0.22, 12 - p3TunnelTravel);
+                const portalPhase = phase.mode.indexOf('wormhole') === 0;
+                const normalizedPhase = Math.min(p3PhaseElapsed / 456, 1);
+                const easedPhase = normalizedPhase * normalizedPhase;
+                p3Wormhole3D.visible = portalPhase;
+                p3BlackHole3D.visible = !portalPhase;
+                if (portalPhase) {
+                    if (phase.mode === 'wormholeApproach') {
+                        p3Camera3D.position.set(Math.sin(t * 0.2) * 0.18, Math.sin(t * 0.15) * 0.12, 25 - easedPhase * 11);
+                    } else if (phase.mode === 'wormholeEntry') {
+                        p3Camera3D.position.set(Math.sin(t * 0.3) * 0.12, Math.cos(t * 0.2) * 0.1, 14 - easedPhase * 8);
+                    } else if (phase.mode === 'wormholeInside') {
+                        p3TunnelTravel = easedPhase * 58;
+                        p3Camera3D.position.set(Math.sin(t * 0.42) * 0.24, Math.cos(t * 0.33) * 0.2, 6 - p3TunnelTravel);
+                    } else {
+                        p3Camera3D.position.set(Math.sin(t * 0.24) * 0.14, Math.sin(t * 0.18) * 0.12, -51 - easedPhase * 30);
+                    }
                     p3Camera3D.rotation.z = Math.sin(t * 0.19) * 0.025;
                     p3Wormhole3D.rotation.z = t * 0.018;
                     p3Wormhole3D.rotation.x = Math.sin(t * 0.12) * 0.025;
@@ -1315,6 +1366,7 @@
                     p3BlackHole3D.rotation.z = Math.sin(t * 0.14) * 0.08;
                 }
                 p3Stars3D.rotation.z = t * 0.003;
+                p3PhaseElapsed += 1 + Math.min(parseFloat(p5WarpSlider.value) || 0, 20) * 0.01;
                 p3Renderer3D.render(p3Scene3D, p3Camera3D);
             }
             p3Angle += 0.028;
